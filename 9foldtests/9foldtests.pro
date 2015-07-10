@@ -14,7 +14,9 @@ TEMPLATE = app
 
 QMAKE_CXXFLAGS += -std=c++11
 
-SOURCES += tst__9foldteststest.cpp
+SOURCES += \
+    main.cpp \
+    9foldtest.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldpatterns/release/ -l9foldpatterns
@@ -58,3 +60,7 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldmultimedia/ -l9foldmultimedia
 
 INCLUDEPATH += $$PWD/../9foldmultimedia
 DEPENDPATH += $$PWD/../9foldmultimedia
+
+HEADERS += \
+    9foldtestrunner.h \
+    9foldtest.h
