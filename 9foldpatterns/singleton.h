@@ -28,13 +28,20 @@ template<class T>
 class Singleton
 {
 public:
-    T& instance() const
+    static T& instance()
     {
         // In C++11 this is thread and memory safe so there's no
         // need to use double-check locking or similar technique
         static T t;
         return t;
     }
+
+private:
+    // Non-copyable
+    Singleton() = delete;
+    Singleton(const Singleton&) = delete;
+    Singleton(Singleton&&) = delete;
+    Singleton& operator=(Singleton singleton) = delete;
 };
 
 } // namspace patterns

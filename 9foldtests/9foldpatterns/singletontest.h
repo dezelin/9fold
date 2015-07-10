@@ -16,17 +16,25 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "9foldtestrunner.h"
+#ifndef SINGLETONTEST_H
+#define SINGLETONTEST_H
 
-#include "9foldtest.h"
-#include "9foldpatterns/singletontest.h"
+#include <QObject>
 
-
-int main(int /*argc*/, char **/*argv*/)
+class SingletonTest : public QObject
 {
-    TestRunner runner;
-    runner.addTest(new _9foldTest());
-    runner.addTest(new SingletonTest());
+    Q_OBJECT
+public:
+    explicit SingletonTest(QObject *parent = 0);
 
-    return runner.runTests();
-}
+signals:
+
+public slots:
+
+private slots:
+    void initTestCase();
+    void cleanupTestCase();
+    void testCaseSingleton();
+};
+
+#endif // SINGLETONTEST_H
