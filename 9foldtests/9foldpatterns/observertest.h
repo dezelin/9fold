@@ -16,19 +16,24 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "9foldtestrunner.h"
+#ifndef OBSERVERTEST_H
+#define OBSERVERTEST_H
 
-#include "9foldtest.h"
-#include "9foldpatterns/observertest.h"
-#include "9foldpatterns/singletontest.h"
+#include <QObject>
 
-
-int main(int /*argc*/, char **/*argv*/)
+class ObserverTest : public QObject
 {
-    TestRunner runner;
-    runner.addTest(new _9foldTest());
-    runner.addTest(new ObserverTest());
-    runner.addTest(new SingletonTest());
+    Q_OBJECT
+public:
+    explicit ObserverTest(QObject *parent = 0);
 
-    return runner.runTests();
-}
+private slots:
+
+    void initTestCase();
+    void cleanupTestCase();
+    void testCaseObserverAttach();
+    void testCaseObserverDettach();
+    void testCaseObserverNotify();
+};
+
+#endif // OBSERVERTEST_H

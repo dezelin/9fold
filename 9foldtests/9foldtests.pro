@@ -17,7 +17,8 @@ QMAKE_CXXFLAGS += -std=c++11
 SOURCES += \
     main.cpp \
     9foldtest.cpp \
-    9foldpatterns/singletontest.cpp
+    9foldpatterns/singletontest.cpp \
+    9foldpatterns/observertest.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldpatterns/release/ -l9foldpatterns
@@ -65,4 +66,5 @@ DEPENDPATH += $$PWD/../9foldmultimedia
 HEADERS += \
     9foldtestrunner.h \
     9foldtest.h \
-    9foldpatterns/singletontest.h
+    9foldpatterns/singletontest.h \
+    9foldpatterns/observertest.h

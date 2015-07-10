@@ -42,9 +42,13 @@ public:
         if (!listener)
             return;
 
-        auto it = std::find(_listeners.begin(), _listeners.end(), listener);
-        if (it != _listeners.end())
+        if (_listeners.size() < 1)
             _listeners.push_back(listener);
+        else {
+            auto it = std::find(_listeners.begin(), _listeners.end(), listener);
+            if (it == _listeners.end())
+                _listeners.push_back(listener);
+        }
     }
 
     void detach(Listener *listener)
@@ -53,7 +57,7 @@ public:
         if (!listener)
             return;
 
-        std::remove(_listeners.begin(), _listeners.end(), listener);
+        _listeners.remove(listener);
     }
 
     const std::list<Listener*>& listeners() const

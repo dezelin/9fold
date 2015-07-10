@@ -27,11 +27,8 @@ class SingletonTest : public QObject
 public:
     explicit SingletonTest(QObject *parent = 0);
 
-signals:
-
-public slots:
-
 private slots:
+
     void initTestCase();
     void cleanupTestCase();
     void testCaseSingleton();
