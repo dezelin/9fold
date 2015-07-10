@@ -16,15 +16,29 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef _9FOLDMULTIMEDIA_GLOBAL_H
-#define _9FOLDMULTIMEDIA_GLOBAL_H
+#ifndef SINGLETON_H
+#define SINGLETON_H
 
-#include <QtCore/qglobal.h>
+namespace _9fold
+{
+namespace patterns
+{
 
-#if defined(_9FOLDMULTIMEDIA_LIBRARY)
-#  define _9FOLDMULTIMEDIASHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define _9FOLDMULTIMEDIASHARED_EXPORT Q_DECL_IMPORT
-#endif
+template<class T>
+class Singleton
+{
+public:
+    T& instance() const
+    {
+        // In C++11 this is thread and memory safe so there's no
+        // need to use double-check locking or similar technique
+        static T t;
+        return t;
+    }
+};
 
-#endif // 9FOLDMULTIMEDIA_GLOBAL_H
+} // namspace patterns
+} // namespace _9fold
+
+#endif // SINGLETON_H
+

@@ -11,6 +11,8 @@ QT       -= gui
 TARGET = 9foldgeometry
 TEMPLATE = lib
 
+QMAKE_CXXFLAGS += -std=c++11
+
 DEFINES += _9FOLDGEOMETRY_LIBRARY
 
 SOURCES += _9foldgeometry.cpp

@@ -16,15 +16,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef _9FOLDMULTIMEDIA_GLOBAL_H
-#define _9FOLDMULTIMEDIA_GLOBAL_H
+#ifndef _9FOLDPATTERNS_H
+#define _9FOLDPATTERNS_H
 
-#include <QtCore/qglobal.h>
+#include "9foldpatterns_global.h"
 
-#if defined(_9FOLDMULTIMEDIA_LIBRARY)
-#  define _9FOLDMULTIMEDIASHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define _9FOLDMULTIMEDIASHARED_EXPORT Q_DECL_IMPORT
-#endif
+class _9FOLDPATTERNSSHARED_EXPORT _9foldpatterns
+{
 
-#endif // 9FOLDMULTIMEDIA_GLOBAL_H
+public:
+    _9foldpatterns();
+};
+
+#endif // _9FOLDPATTERNS_H

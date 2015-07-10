@@ -11,6 +11,8 @@ QT       -= gui
 TARGET = 9foldmultimedia
 TEMPLATE = lib
 
+QMAKE_CXXFLAGS += -std=c++11
+
 DEFINES += _9FOLDMULTIMEDIA_LIBRARY
 
 SOURCES += _9foldmultimedia.cpp
