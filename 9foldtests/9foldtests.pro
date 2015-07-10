@@ -1,23 +1,21 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2015-07-10T07:31:33
+# Project created by QtCreator 2015-07-10T23:17:52
 #
 #-------------------------------------------------
 
-QT       += core gui widgets
+QT       += widgets declarative qml quick network opengl sql script scripttools svg webkit webkitwidgets xml xmlpatterns multimedia testlib dbus printsupport
 
-TARGET = 9fold
+TARGET = tst__9foldteststest
+CONFIG   += console
+CONFIG   -= app_bundle
+
 TEMPLATE = app
 
 QMAKE_CXXFLAGS += -std=c++11
 
-
-SOURCES += main.cpp\
-        mainwindow.cpp
-
-HEADERS  += mainwindow.h
-
-FORMS    += mainwindow.ui
+SOURCES += tst__9foldteststest.cpp
+DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldpatterns/release/ -l9foldpatterns
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../9foldpatterns/debug/ -l9foldpatterns

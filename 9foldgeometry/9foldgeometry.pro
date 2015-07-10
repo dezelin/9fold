@@ -4,8 +4,6 @@
 #
 #-------------------------------------------------
 
-QT       += testlib
-
 QT       -= gui
 
 TARGET = 9foldgeometry

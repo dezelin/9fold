@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += network opengl svg multimedia testlib
+QT       += network opengl svg multimedia
 
 QT       -= gui
 

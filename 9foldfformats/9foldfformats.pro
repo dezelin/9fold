@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += sql xml xmlpatterns testlib
+QT       += sql xml xmlpatterns
 
 QT       -= gui
 

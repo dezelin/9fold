@@ -7,4 +7,5 @@ SUBDIRS += \
     9foldscene \
     9foldmultimedia \
     9foldwidgets \
-    9fold
+    9fold \
+    9foldtests

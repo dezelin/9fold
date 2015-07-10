@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += widgets network opengl sql svg webkit webkitwidgets xml xmlpatterns multimedia testlib
+QT       += widgets network opengl sql svg webkit webkitwidgets xml xmlpatterns multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport
 
