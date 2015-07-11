@@ -13,9 +13,29 @@ QMAKE_CXXFLAGS += -std=c++11
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    document.cpp \
+    documentview.cpp \
+    documentpresenter.cpp \
+    documentmanager.cpp \
+    documentviewmanager.cpp \
+    _9folddocument.cpp \
+    _9folddocumentpresenter.cpp \
+    _9folddocumentview.cpp \
+    _9folddocumentmanager.cpp \
+    _9folddocumentviewmanager.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    document.h \
+    documentview.h \
+    documentpresenter.h \
+    documentmanager.h \
+    documentviewmanager.h \
+    _9folddocument.h \
+    _9folddocumentpresenter.h \
+    _9folddocumentview.h \
+    _9folddocumentmanager.h \
+    _9folddocumentviewmanager.h
 
 FORMS    += mainwindow.ui
 
