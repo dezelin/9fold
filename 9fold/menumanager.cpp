@@ -16,30 +16,57 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "_9folddocumentviewmanager.h"
+#include "menumanager.h"
 
 namespace _9fold
 {
-namespace documents
+namespace menus
 {
 
-_9FoldDocumentViewManager::_9FoldDocumentViewManager(QObject *parent)
-    : DocumentViewManager(parent)
+class MenuManager::MenuManagerPrivate
+{
+public:
+    MenuManagerPrivate(QMainWindow *mainWindow)
+        : _mainWindow(mainWindow)
+    {
+
+    }
+
+    QMainWindow* mainWindow() const
+    {
+        return _mainWindow;
+    }
+
+    const QList<QMenu*>& menus() const
+    {
+        return _menus;
+    }
+
+private:
+    QMainWindow *_mainWindow;
+    QList<QMenu*> _menus;
+};
+
+MenuManager::MenuManager(QMainWindow *mainWindow, QObject *parent)
+    : QObject(parent), _p(new MenuManagerPrivate(mainWindow))
 {
 
 }
 
-_9FoldDocumentViewManager::~_9FoldDocumentViewManager()
+MenuManager::~MenuManager()
 {
 
 }
 
-DocumentView* _9FoldDocumentViewManager::createView()
+QMainWindow* MenuManager::mainWindow() const
 {
-    return 0;
+    return _p->mainWindow();
 }
 
-} // namespace documents
+const QList<QMenu*>& MenuManager::menus() const
+{
+    return _p->menus();
+}
+
+} // namespace menus
 } // namespace _9fold
-
-

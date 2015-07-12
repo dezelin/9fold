@@ -16,30 +16,29 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "_9folddocumentviewmanager.h"
+#ifndef _9FOLDTOOLBARMANAGER_H
+#define _9FOLDTOOLBARMANAGER_H
+
+#include "toolbarmanager.h"
+
+#include <QMainWindow>
+#include <QObject>
+#include <QWidget>
 
 namespace _9fold
 {
-namespace documents
+namespace toolbars
 {
 
-_9FoldDocumentViewManager::_9FoldDocumentViewManager(QObject *parent)
-    : DocumentViewManager(parent)
+class _9FoldToolBarManager : public ToolBarManager
 {
+    Q_OBJECT
+public:
+    _9FoldToolBarManager(QMainWindow *mainWindow, QObject *parent = 0);
+    virtual ~_9FoldToolBarManager();
+};
 
-}
-
-_9FoldDocumentViewManager::~_9FoldDocumentViewManager()
-{
-
-}
-
-DocumentView* _9FoldDocumentViewManager::createView()
-{
-    return 0;
-}
-
-} // namespace documents
+} // namespace toolbars
 } // namespace _9fold
 
-
+#endif // _9FOLDTOOLBARMANAGER_H

@@ -15,10 +15,14 @@ QMAKE_CXXFLAGS += -std=c++11
 
 DEFINES += _9FOLDWIDGETS_LIBRARY
 
-SOURCES += _9foldwidgets.cpp
+SOURCES += _9foldwidgets.cpp \
+    centralwidget.cpp \
+    _9foldcentralwidget.cpp
 
 HEADERS += _9foldwidgets.h\
-        9foldwidgets_global.h
+        9foldwidgets_global.h \
+    centralwidget.h \
+    _9foldcentralwidget.h
 
 unix {
     target.path = /usr/lib

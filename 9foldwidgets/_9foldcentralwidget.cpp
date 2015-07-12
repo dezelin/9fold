@@ -16,30 +16,24 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "_9folddocumentviewmanager.h"
+#include "_9foldcentralwidget.h"
 
 namespace _9fold
 {
-namespace documents
+namespace widgets
 {
 
-_9FoldDocumentViewManager::_9FoldDocumentViewManager(QObject *parent)
-    : DocumentViewManager(parent)
-{
-
-}
-
-_9FoldDocumentViewManager::~_9FoldDocumentViewManager()
+_9FoldCentralWidget::_9FoldCentralWidget(QWidget *parent)
+    : CentralWidget(parent)
 {
 
 }
 
-DocumentView* _9FoldDocumentViewManager::createView()
+_9FoldCentralWidget::~_9FoldCentralWidget()
 {
-    return 0;
+
 }
 
-} // namespace documents
+} // namespace widgets
 } // namespace _9fold
-
 

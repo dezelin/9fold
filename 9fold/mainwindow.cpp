@@ -19,16 +19,50 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+#include <QMainWindow>
+
+namespace Ui {
+class MainWindow;
+}
+
+namespace _9fold
 {
-    ui->setupUi(this);
+namespace ui
+{
+
+class MainWindow::MainWindowPrivate
+{
+public:
+    MainWindowPrivate(QMainWindow* mainWindow, Ui::MainWindow *ui)
+        : _mainWindow(mainWindow), _ui(ui)
+    {
+        Q_ASSERT(_mainWindow);
+        Q_ASSERT(_ui);
+        _ui->setupUi(_mainWindow);
+    }
+
+    QMainWindow* mainWindow() const
+    {
+        return _mainWindow;
+    }
+
+    Ui::MainWindow* ui()
+    {
+        return _ui.data();
+    }
+
+private:
+    QMainWindow *_mainWindow;
+    QScopedPointer<Ui::MainWindow> _ui;
+};
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), _p(new MainWindowPrivate(this, new Ui::MainWindow()))
+{
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
 }
 
 void MainWindow::changeEvent(QEvent *e)
@@ -36,9 +70,12 @@ void MainWindow::changeEvent(QEvent *e)
     QMainWindow::changeEvent(e);
     switch (e->type()) {
     case QEvent::LanguageChange:
-        ui->retranslateUi(this);
+        _p->ui()->retranslateUi(this);
         break;
     default:
         break;
     }
 }
+
+} // namespace ui
+} // namespace _9fold

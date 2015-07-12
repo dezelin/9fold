@@ -23,7 +23,18 @@ SOURCES += main.cpp\
     _9folddocumentpresenter.cpp \
     _9folddocumentview.cpp \
     _9folddocumentmanager.cpp \
-    _9folddocumentviewmanager.cpp
+    _9folddocumentviewmanager.cpp \
+    workspace.cpp \
+    actionmanager.cpp \
+    toolbarmanager.cpp \
+    dockmanager.cpp \
+    _9folddockmanager.cpp \
+    _9foldactionmanager.cpp \
+    _9foldtoolbarmanager.cpp \
+    _9foldworkspace.cpp \
+    _9foldmainwindow.cpp \
+    menumanager.cpp \
+    _9foldmenumanager.cpp
 
 HEADERS  += mainwindow.h \
     document.h \
@@ -35,7 +46,18 @@ HEADERS  += mainwindow.h \
     _9folddocumentpresenter.h \
     _9folddocumentview.h \
     _9folddocumentmanager.h \
-    _9folddocumentviewmanager.h
+    _9folddocumentviewmanager.h \
+    workspace.h \
+    actionmanager.h \
+    toolbarmanager.h \
+    dockmanager.h \
+    _9folddockmanager.h \
+    _9foldactionmanager.h \
+    _9foldtoolbarmanager.h \
+    _9foldworkspace.h \
+    _9foldmainwindow.h \
+    menumanager.h \
+    _9foldmenumanager.h
 
 FORMS    += mainwindow.ui
 

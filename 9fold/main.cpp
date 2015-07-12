@@ -16,13 +16,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "mainwindow.h"
+#include "_9foldmainwindow.h"
 #include <QApplication>
+
+using namespace _9fold::ui;
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
+    _9FoldMainWindow w;
     w.show();
 
     return a.exec();

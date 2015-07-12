@@ -16,30 +16,36 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "_9folddocumentviewmanager.h"
+#ifndef _9FOLDWORKSPACE_H
+#define _9FOLDWORKSPACE_H
+
+#include "actionmanager.h"
+#include "dockmanager.h"
+#include "documentmanager.h"
+#include "menumanager.h"
+#include "toolbarmanager.h"
+#include "workspace.h"
+
+#include <QMainWindow>
+#include <QObject>
+#include <QWidget>
 
 namespace _9fold
 {
-namespace documents
+namespace workspaces
 {
 
-_9FoldDocumentViewManager::_9FoldDocumentViewManager(QObject *parent)
-    : DocumentViewManager(parent)
+class _9FoldWorkspace : public Workspace
 {
+    Q_OBJECT
+public:
+    _9FoldWorkspace(QMainWindow *mainWindow, DocumentManager *documentManager,
+        ActionManager *actionManager, ToolBarManager *toolBarManager,
+        DockManager *dockManager, MenuManager *menuManager, QObject *parent = 0);
+    virtual ~_9FoldWorkspace();
+};
 
-}
-
-_9FoldDocumentViewManager::~_9FoldDocumentViewManager()
-{
-
-}
-
-DocumentView* _9FoldDocumentViewManager::createView()
-{
-    return 0;
-}
-
-} // namespace documents
+} // namespace workspaces
 } // namespace _9fold
 
-
+#endif // _9FOLDWORKSPACE_H

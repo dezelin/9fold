@@ -35,6 +35,8 @@ class _9FoldDocumentViewManager : public DocumentViewManager
 public:
     _9FoldDocumentViewManager(QObject *parent = 0);
     virtual ~_9FoldDocumentViewManager();
+
+    virtual DocumentView* createView();
 };
 
 } // namespace documents

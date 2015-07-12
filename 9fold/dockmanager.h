@@ -16,30 +16,45 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "_9folddocumentviewmanager.h"
+#ifndef DOCKMANAGER_H
+#define DOCKMANAGER_H
+
+#include <QDockWidget>
+#include <QList>
+#include <QMainWindow>
+#include <QObject>
+#include <QScopedPointer>
+#include <QWidget>
 
 namespace _9fold
 {
-namespace documents
+namespace docks
 {
 
-_9FoldDocumentViewManager::_9FoldDocumentViewManager(QObject *parent)
-    : DocumentViewManager(parent)
+class DockManager : public QObject
 {
+    Q_OBJECT
+public:
+    explicit DockManager(QMainWindow *mainWindow, QObject *parent = 0);
+    virtual ~DockManager();
 
-}
+    void addDock(Qt::DockWidgetArea area, QDockWidget *dock);
+    void removeDock(QDockWidget *dock);
 
-_9FoldDocumentViewManager::~_9FoldDocumentViewManager()
-{
+    const QList<QDockWidget*>& docks() const;
 
-}
+    QMainWindow* mainWindow() const;
 
-DocumentView* _9FoldDocumentViewManager::createView()
-{
-    return 0;
-}
+signals:
 
-} // namespace documents
+public slots:
+
+private:
+    class DockManagerPrivate;
+    QScopedPointer<DockManagerPrivate> _p;
+};
+
+} // namespace docks
 } // namespace _9fold
 
-
+#endif // DOCKMANAGER_H

@@ -16,30 +16,23 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "_9folddocumentviewmanager.h"
+#include "_9foldactionmanager.h"
 
 namespace _9fold
 {
-namespace documents
+namespace actions
 {
 
-_9FoldDocumentViewManager::_9FoldDocumentViewManager(QObject *parent)
-    : DocumentViewManager(parent)
-{
-
-}
-
-_9FoldDocumentViewManager::~_9FoldDocumentViewManager()
+_9FoldActionManager::_9FoldActionManager(QMainWindow *mainWindow, QObject *parent)
+    : ActionManager(mainWindow, parent)
 {
 
 }
 
-DocumentView* _9FoldDocumentViewManager::createView()
+_9FoldActionManager::~_9FoldActionManager()
 {
-    return 0;
+
 }
 
-} // namespace documents
+} // namespace actions
 } // namespace _9fold
-
-

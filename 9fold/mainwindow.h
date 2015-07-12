@@ -21,23 +21,27 @@
 
 #include <QMainWindow>
 
-namespace Ui {
-class MainWindow;
-}
+namespace _9fold
+{
+namespace ui
+{
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    virtual ~MainWindow();
 
 protected:
     void changeEvent(QEvent *e);
 
 private:
-    Ui::MainWindow *ui;
+    class MainWindowPrivate;
+    QScopedPointer<MainWindowPrivate> _p;
 };
+
+} // namespace ui
+} // namespace _9fold
 
 #endif // MAINWINDOW_H
