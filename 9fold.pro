@@ -6,6 +6,7 @@ SUBDIRS += \
     9foldscene \
     9foldfformats \
     9foldmultimedia \
+    9foldpython \
     9foldwidgets \
     9fold \
     9foldtests
