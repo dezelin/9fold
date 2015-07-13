@@ -18,24 +18,62 @@
 
 #include "_9foldworkspace.h"
 
+#include "_9foldactionmanager.h"
+#include "_9foldcommandmanager.h"
+#include "_9folddockmanager.h"
+#include "_9folddocumentmanager.h"
+#include "_9foldmenumanager.h"
+#include "_9foldtoolbarmanager.h"
+
+#include <_9foldcentralwidget.h>
+
+
 namespace _9fold
 {
 namespace workspaces
 {
 
 _9FoldWorkspace::_9FoldWorkspace(QMainWindow *mainWindow,
-    DocumentManager *documentManager, ActionManager *actionManager,
-    ToolBarManager *toolBarManager, DockManager *dockManager,
-    MenuManager *menuManager, QObject *parent)
-    : Workspace(mainWindow, documentManager, actionManager, toolBarManager,
-        dockManager, menuManager, parent)
+    _9FoldCommandManager *commandManager, _9FoldDocumentManager *documentManager,
+    _9FoldActionManager *actionManager, _9FoldToolBarManager *toolBarManager,
+    _9FoldDockManager *dockManager, _9FoldMenuManager *menuManager, QObject *parent)
+    : Workspace(mainWindow, commandManager, documentManager, actionManager,
+        toolBarManager, dockManager, menuManager, parent)
 {
+    _menuManager()->addDefaultMenus();
 
+    setCentralWidget(new _9FoldCentralWidget(mainWindow));
 }
 
 _9FoldWorkspace::~_9FoldWorkspace()
 {
 
+}
+
+_9FoldDocumentManager* _9FoldWorkspace::_documentManager() const
+{
+    return static_cast<_9FoldDocumentManager*>(documentManager());
+}
+
+_9FoldMenuManager* _9FoldWorkspace::_menuManager() const
+{
+    return static_cast<_9FoldMenuManager*>(menuManager());
+}
+
+void _9FoldWorkspace::addNewJavaScriptDocument()
+{
+    Q_ASSERT(_documentManager());
+    QScopedPointer<_9FoldDocument> document(_documentManager()->createNewJavaScriptDocument());
+
+    DocumentPresenter *presenter = document->firstPresenter();
+    Q_ASSERT(presenter);
+
+    DocumentView *view = presenter->view();
+    Q_ASSERT(view);
+
+    centralWidget()->addTab(view, document->name() + "*");
+
+    _documentManager()->addDocument(document.take());
 }
 
 } // namespace workspaces

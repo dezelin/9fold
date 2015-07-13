@@ -16,45 +16,51 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "_9foldaction.h"
-#include "_9foldactionmanager.h"
+#include "_9foldcommandmanager.h"
 #include "_9foldworkspace.h"
 
 namespace _9fold
 {
-namespace actions
+namespace commands
 {
 
-_9FoldActionManager::_9FoldActionManager(QMainWindow *mainWindow,
-    _9FoldCommandManager *commandManager, QObject *parent)
-    : ActionManager(mainWindow, commandManager, parent)
-{
-
-}
-
-_9FoldActionManager::~_9FoldActionManager()
+_9FoldCommandManager::_9FoldCommandManager(QObject *parent)
+    : CommandManager(parent)
 {
 
 }
 
-QAction* _9FoldActionManager::createNew()
+_9FoldCommandManager::~_9FoldCommandManager()
 {
-    _9FoldAction *action = new _9FoldAction(_commandManager(),
-        _commandManager()->createNewJavaScriptCommand(), tr("&New JavaScript"),
-        parent());
 
-    return action;
 }
 
-_9FoldCommandManager* _9FoldActionManager::_commandManager() const
-{
-    return static_cast<_9FoldCommandManager*>(commandManager());
-}
-
-_9FoldWorkspace* _9FoldActionManager::_workspace() const
+_9FoldWorkspace* _9FoldCommandManager::_workspace() const
 {
     return static_cast<_9FoldWorkspace*>(workspace());
 }
 
-} // namespace actions
+_9FoldCommandManager::GuiCommand* _9FoldCommandManager::createNewJavaScriptCommand() const
+{
+    struct NewJavaScriptCommand : public GuiCommand
+    {
+        NewJavaScriptCommand(_9FoldWorkspace *workspace) : GuiCommand(), _workspace(workspace)
+        {
+
+        }
+
+        virtual void execute()
+        {
+            Q_ASSERT(_workspace);
+            _workspace->addNewJavaScriptDocument();
+        }
+
+    private:
+        _9FoldWorkspace *_workspace;
+    };
+
+    return new NewJavaScriptCommand(_workspace());
+}
+
+} // namespace commands
 } // namespace _9fold

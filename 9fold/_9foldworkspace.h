@@ -19,11 +19,6 @@
 #ifndef _9FOLDWORKSPACE_H
 #define _9FOLDWORKSPACE_H
 
-#include "actionmanager.h"
-#include "dockmanager.h"
-#include "documentmanager.h"
-#include "menumanager.h"
-#include "toolbarmanager.h"
 #include "workspace.h"
 
 #include <QMainWindow>
@@ -32,17 +27,63 @@
 
 namespace _9fold
 {
+
+namespace actions
+{
+    class _9FoldActionManager;
+}
+
+namespace commands
+{
+    class _9FoldCommandManager;
+}
+
+namespace docks
+{
+    class _9FoldDockManager;
+}
+
+namespace documents
+{
+    class _9FoldDocumentManager;
+}
+
+namespace menus
+{
+    class _9FoldMenuManager;
+}
+
+namespace toolbars
+{
+    class _9FoldToolBarManager;
+};
+
+
 namespace workspaces
 {
+
+using namespace _9fold::actions;
+using namespace _9fold::docks;
+using namespace _9fold::documents;
+using namespace _9fold::menus;
+using namespace _9fold::toolbars;
 
 class _9FoldWorkspace : public Workspace
 {
     Q_OBJECT
 public:
-    _9FoldWorkspace(QMainWindow *mainWindow, DocumentManager *documentManager,
-        ActionManager *actionManager, ToolBarManager *toolBarManager,
-        DockManager *dockManager, MenuManager *menuManager, QObject *parent = 0);
+    _9FoldWorkspace(QMainWindow *mainWindow, _9FoldCommandManager *commandManager,
+        _9FoldDocumentManager *documentManager, _9FoldActionManager *actionManager,
+        _9FoldToolBarManager *toolBarManager, _9FoldDockManager *dockManager,
+        _9FoldMenuManager *menuManager, QObject *parent = 0);
+
     virtual ~_9FoldWorkspace();
+
+    void addNewJavaScriptDocument();
+
+protected:
+    _9FoldDocumentManager* _documentManager() const;
+    _9FoldMenuManager* _menuManager() const;
 };
 
 } // namespace workspaces

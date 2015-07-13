@@ -18,6 +18,9 @@
 
 #include "documentmanager.h"
 
+#include <QList>
+#include <QtAlgorithms>
+
 namespace _9fold
 {
 namespace documents
@@ -32,12 +35,24 @@ public:
 
     }
 
+    ~DocumentManagerPrivate()
+    {
+        qDeleteAll(_documents);
+    }
+
     DocumentViewManager* viewManager() const
     {
         return _viewManager;
     }
 
+    void addDocument(Document *document)
+    {
+        if (!_documents.contains(document))
+            _documents.append(document);
+    }
+
 private:
+    QList<Document*> _documents;
     DocumentViewManager *_viewManager;
 };
 
@@ -55,6 +70,11 @@ DocumentManager::~DocumentManager()
 DocumentViewManager* DocumentManager::documentViewManager() const
 {
     return _p->viewManager();
+}
+
+void DocumentManager::addDocument(Document *document)
+{
+    _p->addDocument(document);
 }
 
 } // namespace documents

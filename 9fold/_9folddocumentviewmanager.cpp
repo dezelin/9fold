@@ -16,15 +16,22 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+#include "_9folddocumentview.h"
 #include "_9folddocumentviewmanager.h"
+#include "_9folddocumentpresenter.h"
+
+#include "_9foldjavascriptdocument.h"
+#include "_9foldjavascriptdocumentpresenter.h"
+#include "_9foldjavascriptdocumentview.h"
+
 
 namespace _9fold
 {
-namespace documents
+namespace views
 {
 
-_9FoldDocumentViewManager::_9FoldDocumentViewManager(QObject *parent)
-    : DocumentViewManager(parent)
+_9FoldDocumentViewManager::_9FoldDocumentViewManager(QMainWindow *mainWindow, QObject *parent)
+    : DocumentViewManager(mainWindow, parent)
 {
 
 }
@@ -34,12 +41,41 @@ _9FoldDocumentViewManager::~_9FoldDocumentViewManager()
 
 }
 
-DocumentView* _9FoldDocumentViewManager::createView()
+DocumentView* _9FoldDocumentViewManager::createView(Document *document)
 {
-    return 0;
+    Q_ASSERT(document);
+    if (!document)
+        return 0;
+
+    QScopedPointer<_9FoldDocumentView> _view;
+    QScopedPointer<_9FoldDocumentPresenter> _presenter;
+    _9FoldDocument *_9foldDoc = static_cast<_9FoldDocument*>(document);
+
+    switch (_9foldDoc->type())
+    {
+        case _9FoldDocument::Type::JAVASCRIPT:
+        {
+            _view.reset(new _9FoldJavaScriptDocumentView(mainWindow()));
+            _presenter.reset(new _9FoldJavaScriptDocumentPresenter(
+                static_cast<_9FoldJavaScriptDocument*>(_9foldDoc),
+                    static_cast<_9FoldJavaScriptDocumentView*>(_view.data()),
+                        _9foldDoc));
+            break;
+        }
+        default:
+        {
+            Q_ASSERT(!"Unknown document type.");
+            break;
+        }
+    }
+
+    _view->attach(_presenter.data());
+    document->attach(_presenter.take());
+
+    return _view.take();
 }
 
-} // namespace documents
+} // namespace views
 } // namespace _9fold
 
 

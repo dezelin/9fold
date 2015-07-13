@@ -39,10 +39,11 @@ public:
     explicit DocumentManager(DocumentViewManager *viewManager, QObject *parent = 0);
     virtual ~DocumentManager();
 
-    virtual Document* createDocument() = 0;
-    virtual DocumentView* createDocumentView(Document *document) = 0;
-
     DocumentViewManager* documentViewManager() const;
+
+    void addDocument(Document *document);
+
+    virtual Document* createDocument(int documentType) = 0;
 
 signals:
 

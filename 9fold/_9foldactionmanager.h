@@ -20,22 +20,39 @@
 #define _9FOLDACTIONMANAGER_H
 
 #include "actionmanager.h"
+#include "_9foldcommandmanager.h"
 
+#include <QAction>
 #include <QMainWindow>
 #include <QObject>
 #include <QWidget>
 
 namespace _9fold
 {
+
+namespace workspaces
+{
+    class _9FoldWorkspace;
+}
+
 namespace actions
 {
+
+using namespace _9fold::workspaces;
 
 class _9FoldActionManager : public ActionManager
 {
     Q_OBJECT
 public:
-    _9FoldActionManager(QMainWindow *mainWindow, QObject *parent = 0);
+    _9FoldActionManager(QMainWindow *mainWindow, _9FoldCommandManager *commandManager,
+        QObject *parent = 0);
     virtual ~_9FoldActionManager();
+
+    QAction* createNew();
+
+private:
+    _9FoldCommandManager* _commandManager() const;
+    _9FoldWorkspace* _workspace() const;
 };
 
 } // namespace actions

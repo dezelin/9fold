@@ -19,27 +19,35 @@
 #ifndef _9FOLDDOCUMENTVIEWMANAGER_H
 #define _9FOLDDOCUMENTVIEWMANAGER_H
 
+#include "document.h"
 #include "documentviewmanager.h"
 
+#include <QMainWindow>
 #include <QObject>
 #include <QWidget>
 
 namespace _9fold
 {
-namespace documents
+namespace views
 {
+
+using namespace _9fold::documents;
 
 class _9FoldDocumentViewManager : public DocumentViewManager
 {
     Q_OBJECT
 public:
-    _9FoldDocumentViewManager(QObject *parent = 0);
+    _9FoldDocumentViewManager(QMainWindow *mainWindow, QObject *parent = 0);
     virtual ~_9FoldDocumentViewManager();
 
-    virtual DocumentView* createView();
+    virtual DocumentView* createView(Document *document);
+
+protected:
+
+private:
 };
 
-} // namespace documents
+} // namespace views
 } // namespace _9fold
 
 #endif // _9FOLDDOCUMENTVIEWMANAGER_H

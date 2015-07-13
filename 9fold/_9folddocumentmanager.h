@@ -20,6 +20,9 @@
 #define _9FOLDDOCUMENTMANAGER_H
 
 #include "documentmanager.h"
+#include "_9folddocument.h"
+#include "_9folddocumentview.h"
+#include "_9folddocumentviewmanager.h"
 
 #include <QObject>
 #include <QScopedPointer>
@@ -34,11 +37,13 @@ class _9FoldDocumentManager : public DocumentManager
 {
     Q_OBJECT
 public:
-    _9FoldDocumentManager(DocumentViewManager *viewManager, QObject *parent = 0);
+    _9FoldDocumentManager(_9FoldDocumentViewManager *viewManager, QObject *parent = 0);
     virtual ~_9FoldDocumentManager();
 
-    virtual Document* createDocument();
-    virtual DocumentView* createDocumentView(Document *document);
+    _9FoldDocument* createNewJavaScriptDocument();
+
+protected:
+    virtual Document* createDocument(int documentType);
 
 private:
     class _9FoldDocumentManagerPrivate;

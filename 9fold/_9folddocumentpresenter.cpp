@@ -34,8 +34,8 @@ public:
 private:
 };
 
-_9FoldDocumentPresenter::_9FoldDocumentPresenter(Document *document,
-    DocumentView *view, QObject *parent)
+_9FoldDocumentPresenter::_9FoldDocumentPresenter(_9FoldDocument *document,
+    _9FoldDocumentView *view, QObject *parent)
     : DocumentPresenter(document, view, parent)
     , _p(new _9FoldDocumentPresenterPrivate())
 {

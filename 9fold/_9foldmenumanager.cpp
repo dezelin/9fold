@@ -18,13 +18,17 @@
 
 #include "_9foldmenumanager.h"
 
+#include <QMenuBar>
+#include <QScopedPointer>
+
 namespace _9fold
 {
 namespace menus
 {
 
-_9FoldMenuManager::_9FoldMenuManager(QMainWindow *mainWindow, QObject *parent)
-    : MenuManager(mainWindow, parent)
+_9FoldMenuManager::_9FoldMenuManager(QMainWindow *mainWindow,
+    _9FoldActionManager *actionManager, QObject *parent)
+    : MenuManager(mainWindow, actionManager, parent)
 {
 
 }
@@ -32,6 +36,23 @@ _9FoldMenuManager::_9FoldMenuManager(QMainWindow *mainWindow, QObject *parent)
 _9FoldMenuManager::~_9FoldMenuManager()
 {
 
+}
+
+void _9FoldMenuManager::addDefaultMenus()
+{
+    addMenu(createFileMenu());
+}
+
+QMenu* _9FoldMenuManager::createFileMenu()
+{
+    QMenu *menu = new QMenu(tr("&File"));
+    menu->insertAction(0, _actionManager()->createNew());
+    return menu;
+}
+
+_9FoldActionManager* _9FoldMenuManager::_actionManager() const
+{
+    return static_cast<_9FoldActionManager*>(actionManager());
 }
 
 } // namespace menus

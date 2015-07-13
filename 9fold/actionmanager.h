@@ -19,23 +19,39 @@
 #ifndef ACTIONMANAGER_H
 #define ACTIONMANAGER_H
 
+#include "commandmanager.h"
+
 #include <QMainWindow>
 #include <QScopedPointer>
 #include <QObject>
 
 namespace _9fold
 {
+
+namespace workspaces
+{
+    class Workspace;
+}
+
 namespace actions
 {
+
+using namespace _9fold::commands;
+using namespace _9fold::workspaces;
 
 class ActionManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit ActionManager(QMainWindow *mainWindow, QObject *parent = 0);
+    explicit ActionManager(QMainWindow *mainWindow, CommandManager *commandManager,
+        QObject *parent = 0);
     virtual ~ActionManager();
 
     QMainWindow* mainWindow() const;
+    CommandManager* commandManager() const;
+
+    Workspace* workspace() const;
+    void setWorkspace(Workspace *workspace);
 
 signals:
 

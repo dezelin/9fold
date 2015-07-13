@@ -17,6 +17,7 @@
 //
 
 #include "_9foldactionmanager.h"
+#include "_9foldcommandmanager.h"
 #include "_9folddockmanager.h"
 #include "_9folddocumentmanager.h"
 #include "_9folddocumentviewmanager.h"
@@ -43,23 +44,26 @@ public:
         QWidget *p = parent ? parent : mainWindow;
 
         QScopedPointer<_9FoldDocumentManager> documentManager(
-            new _9FoldDocumentManager(new _9FoldDocumentViewManager(p), p));
+            new _9FoldDocumentManager(new _9FoldDocumentViewManager(mainWindow, p)));
+
+        QScopedPointer<_9FoldCommandManager> commandManager(
+            new _9FoldCommandManager());
 
         QScopedPointer<_9FoldActionManager> actionManager(
-            new _9FoldActionManager(mainWindow, p));
+            new _9FoldActionManager(mainWindow, commandManager.data()));
 
         QScopedPointer<_9FoldToolBarManager> toolBarManager(
-            new _9FoldToolBarManager(mainWindow, p));
+            new _9FoldToolBarManager(mainWindow));
 
         QScopedPointer<_9FoldDockManager> dockManager(
-            new _9FoldDockManager(mainWindow, p));
+            new _9FoldDockManager(mainWindow));
 
         QScopedPointer<_9FoldMenuManager> menuManager(
-            new _9FoldMenuManager(mainWindow, p));
+            new _9FoldMenuManager(mainWindow, actionManager.data()));
 
-        _workspace.reset(new _9FoldWorkspace(mainWindow, documentManager.take(),
-            actionManager.take(), toolBarManager.take(), dockManager.take(),
-            menuManager.take(), p));
+        _workspace.reset(new _9FoldWorkspace(mainWindow, commandManager.take(),
+            documentManager.take(), actionManager.take(), toolBarManager.take(),
+            dockManager.take(), menuManager.take(), p));
     }
 
 private:

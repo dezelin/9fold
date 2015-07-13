@@ -16,51 +16,66 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef MENUMANAGER_H
-#define MENUMANAGER_H
+#ifndef COMMANDMANAGER_H
+#define COMMANDMANAGER_H
 
-#include "actionmanager.h"
-
-#include <QList>
-#include <QMainWindow>
-#include <QMenu>
 #include <QObject>
 #include <QScopedPointer>
-#include <QWidget>
 
 namespace _9fold
 {
-namespace menus
+
+namespace workspaces
+{
+    class Workspace;
+};
+
+namespace commands
 {
 
-using namespace _9fold::actions;
+using namespace _9fold::workspaces;
 
-class MenuManager : public QObject
+class CommandManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit MenuManager(QMainWindow *mainWindow, ActionManager *actionManager,
-        QObject *parent = 0);
-    virtual ~MenuManager();
+    explicit CommandManager(QObject *parent = 0);
+    virtual ~CommandManager();
 
-    QMainWindow* mainWindow() const;
+    class BackgroundCommand
+    {
+    public:
+        BackgroundCommand() {}
+        virtual ~BackgroundCommand() {}
 
-    ActionManager* actionManager() const;
+        virtual void execute() = 0;
+    };
 
-    const QList<QMenu*>& menus() const;
+    class GuiCommand : public BackgroundCommand
+    {
+    public:
+        GuiCommand() : BackgroundCommand()
+        {
 
-    void addMenu(QMenu *menu);
+        }
+    };
+
+    Workspace* workspace() const;
+    void setWorkspace(Workspace *workspace);
+
+    void enqueue(BackgroundCommand *command);
+    void enqueue(GuiCommand *command);
 
 signals:
 
 public slots:
 
 private:
-    class MenuManagerPrivate;
-    QScopedPointer<MenuManagerPrivate> _p;
+    class CommandManagerPrivate;
+    QScopedPointer<CommandManagerPrivate> _p;
 };
 
-} // namespace menus
+} // namespace commands
 } // namespace _9fold
 
-#endif // MENUMANAGER_H
+#endif // COMMANDMANAGER_H

@@ -20,6 +20,8 @@
 #define _9FOLDDOCUMENTPRESENTER_H
 
 #include "documentpresenter.h"
+#include "_9folddocument.h"
+#include "_9folddocumentview.h"
 
 #include <QObject>
 #include <QScopedPointer>
@@ -34,7 +36,7 @@ class _9FoldDocumentPresenter : public DocumentPresenter
 {
     Q_OBJECT
 public:
-    _9FoldDocumentPresenter(Document *document, DocumentView *view,
+    _9FoldDocumentPresenter(_9FoldDocument *document, _9FoldDocumentView *view,
         QObject *parent = 0);
     virtual ~_9FoldDocumentPresenter();
 

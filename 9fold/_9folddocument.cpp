@@ -18,9 +18,6 @@
 
 #include "_9folddocument.h"
 
-#include <QList>
-#include <QtGlobal>
-
 namespace _9fold
 {
 namespace documents
@@ -29,29 +26,24 @@ namespace documents
 class _9FoldDocument::_9FoldDocumentPrivate
 {
 public:
-    _9FoldDocumentPrivate()
+    _9FoldDocumentPrivate(_9FoldDocument::Type type)
+        : _type(type)
     {
 
     }
 
-    void attach(DocumentPresenter *presenter)
+    _9FoldDocument::Type type() const
     {
-        if (!_presenters.contains(presenter))
-            _presenters.append(presenter);
-    }
-
-    void detach(DocumentPresenter *presenter)
-    {
-        _presenters.removeAll(presenter);
+        return _type;
     }
 
 private:
-    QList<DocumentPresenter*> _presenters;
+    _9FoldDocument::Type _type;
 };
 
 
-_9FoldDocument::_9FoldDocument(QObject *parent)
-    : Document(parent), _p(new _9FoldDocumentPrivate())
+_9FoldDocument::_9FoldDocument(const QString &name, Type type, QObject *parent)
+    : Document(name, parent), _p(new _9FoldDocumentPrivate(type))
 {
 
 }
@@ -61,22 +53,9 @@ _9FoldDocument::~_9FoldDocument()
 
 }
 
-void _9FoldDocument::attach(DocumentPresenter *presenter)
+_9FoldDocument::Type _9FoldDocument::type() const
 {
-    Q_ASSERT(presenter);
-    if (!presenter)
-        return;
-
-    _p->attach(presenter);
-}
-
-void _9FoldDocument::detach(DocumentPresenter *presenter)
-{
-    Q_ASSERT(presenter);
-    if (!presenter)
-        return;
-
-    _p->detach(presenter);
+    return _p->type();
 }
 
 } // namespace documents

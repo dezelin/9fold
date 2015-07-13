@@ -20,7 +20,7 @@
 
 namespace _9fold
 {
-namespace documents
+namespace views
 {
 
 class _9FoldDocumentView::_9FoldDocumentViewPrivate
@@ -34,7 +34,7 @@ public:
 private:
 };
 
-_9FoldDocumentView::_9FoldDocumentView(QObject *parent)
+_9FoldDocumentView::_9FoldDocumentView(QWidget *parent)
     : DocumentView(parent), _p(new _9FoldDocumentViewPrivate())
 {
 
@@ -45,5 +45,5 @@ _9FoldDocumentView::~_9FoldDocumentView()
 
 }
 
-} // namespace documents
+} // namespace views
 } // namespace _9fold

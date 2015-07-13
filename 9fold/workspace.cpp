@@ -18,6 +18,14 @@
 
 #include "workspace.h"
 
+#include "actionmanager.h"
+#include "commandmanager.h"
+#include "dockmanager.h"
+#include "documentmanager.h"
+#include "documentviewmanager.h"
+#include "menumanager.h"
+#include "toolbarmanager.h"
+
 #include <QtGlobal>
 #include <QList>
 
@@ -29,17 +37,18 @@ namespace workspaces
 class Workspace::WorkspacePrivate
 {
 public:
-    WorkspacePrivate(QMainWindow *mainWindow, DocumentManager *documentManager,
-        ActionManager *actionManager, ToolBarManager *toolBarManager,
-        DockManager *dockManager, MenuManager *menuManager)
+    WorkspacePrivate(QMainWindow *mainWindow, CommandManager *commandManager,
+        DocumentManager *documentManager, ActionManager *actionManager,
+        ToolBarManager *toolBarManager, DockManager *dockManager,
+        MenuManager *menuManager)
         : _mainWindow(mainWindow)
         , _actionManager(actionManager)
+        , _commandManager(commandManager)
         , _dockManager(dockManager)
         , _documentManager(documentManager)
         , _menuManager(menuManager)
         , _toolBarManager(toolBarManager)
     {
-
     }
 
     void addToolBar(Qt::ToolBarArea area, QToolBar *toolBar)
@@ -104,6 +113,11 @@ public:
         return _actionManager;
     }
 
+    CommandManager* commandManager() const
+    {
+        return _commandManager;
+    }
+
     DockManager* dockManager() const
     {
         return _dockManager;
@@ -132,20 +146,37 @@ public:
 private:
     QMainWindow *_mainWindow;
     ActionManager *_actionManager;
+    CommandManager *_commandManager;
     DockManager *_dockManager;
     DocumentManager *_documentManager;
     MenuManager *_menuManager;
     ToolBarManager *_toolBarManager;
 };
 
-Workspace::Workspace(QMainWindow *mainWindow, DocumentManager *documentManager,
-    ActionManager *actionManager, ToolBarManager *toolBarManager,
-    DockManager *dockManager, MenuManager *menuManager, QObject *parent)
+Workspace::Workspace(QMainWindow *mainWindow, CommandManager *commandManager,
+    DocumentManager *documentManager, ActionManager *actionManager,
+    ToolBarManager *toolBarManager, DockManager *dockManager,
+    MenuManager *menuManager, QObject *parent)
     : QObject(parent)
-    , _p(new WorkspacePrivate(mainWindow, documentManager, actionManager,
-        toolBarManager, dockManager, menuManager))
+    , _p(new WorkspacePrivate(mainWindow, commandManager, documentManager,
+        actionManager, toolBarManager, dockManager, menuManager))
 {
-
+    if (actionManager) {
+        actionManager->setParent(this);
+        actionManager->setWorkspace(this);
+    }
+    if (commandManager) {
+        commandManager->setParent(this);
+        commandManager->setWorkspace(this);
+    }
+    if (dockManager)
+        dockManager->setParent(this);
+    if (documentManager)
+        documentManager->setParent(this);
+    if (menuManager)
+        menuManager->setParent(this);
+    if (toolBarManager)
+        toolBarManager->setParent(this);
 }
 
 Workspace::~Workspace()
@@ -198,14 +229,19 @@ void Workspace::setCentralWidget(CentralWidget *centralWidget)
     _p->setCentralWidget(centralWidget);
 }
 
-const QList<QToolBar*>& Workspace::toolBars() const
-{
-    return _p->toolBars();
-}
-
 const QList<QDockWidget*>& Workspace::docks() const
 {
     return _p->docks();
+}
+
+const QList<QMenu*>& Workspace::menus() const
+{
+    return _p->menus();
+}
+
+const QList<QToolBar*>& Workspace::toolBars() const
+{
+    return _p->toolBars();
 }
 
 CentralWidget* Workspace::centralWidget() const
@@ -218,6 +254,11 @@ ActionManager* Workspace::actionManager() const
     return _p->actionManager();
 }
 
+CommandManager* Workspace::commandManager() const
+{
+    return _p->commandManager();
+}
+
 DockManager* Workspace::dockManager() const
 {
     return _p->dockManager();
@@ -228,9 +269,9 @@ DocumentManager* Workspace::documentManager() const
     return _p->documentManager();
 }
 
-const QList<QMenu*>& Workspace::menus() const
+MenuManager* Workspace::menuManager() const
 {
-    return _p->menus();
+    return _p->menuManager();
 }
 
 ToolBarManager* Workspace::toolBarManager() const

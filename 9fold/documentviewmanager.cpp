@@ -20,10 +20,29 @@
 
 namespace _9fold
 {
-namespace documents
+namespace views
 {
 
-DocumentViewManager::DocumentViewManager(QObject *parent) : QObject(parent)
+class DocumentViewManager::DocumentViewManagerPrivate
+{
+public:
+    DocumentViewManagerPrivate(QMainWindow *mainWindow)
+        : _mainWindow(mainWindow)
+    {
+
+    }
+
+    QMainWindow* mainWindow() const
+    {
+        return _mainWindow;
+    }
+
+private:
+    QMainWindow *_mainWindow;
+};
+
+DocumentViewManager::DocumentViewManager(QMainWindow *mainWindow, QObject *parent)
+    : QObject(parent), _p(new DocumentViewManagerPrivate(mainWindow))
 {
 
 }
@@ -33,5 +52,10 @@ DocumentViewManager::~DocumentViewManager()
 
 }
 
-} // namespace documents
+QMainWindow* DocumentViewManager::mainWindow() const
+{
+    return _p->mainWindow();
+}
+
+} // namespace views
 } // namespace _9fold

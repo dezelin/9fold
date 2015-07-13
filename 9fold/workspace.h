@@ -19,12 +19,6 @@
 #ifndef WORKSPACE_H
 #define WORKSPACE_H
 
-#include "actionmanager.h"
-#include "dockmanager.h"
-#include "documentmanager.h"
-#include "menumanager.h"
-#include "toolbarmanager.h"
-
 #include <centralwidget.h>
 
 #include <QDockWidget>
@@ -38,23 +32,63 @@
 
 namespace _9fold
 {
+
+namespace actions
+{
+    class ActionManager;
+}
+
+namespace commands
+{
+    class CommandManager;
+}
+
+namespace docks
+{
+    class DockManager;
+}
+
+namespace documents
+{
+    class DocumentManager;
+}
+
+namespace views
+{
+    class DocumentViewManager;
+}
+
+namespace menus
+{
+    class MenuManager;
+}
+
+namespace toolbars
+{
+    class ToolBarManager;
+};
+
+
 namespace workspaces
 {
 
-using namespace actions;
-using namespace docks;
-using namespace documents;
-using namespace menus;
-using namespace toolbars;
-using namespace widgets;
+using namespace _9fold::actions;
+using namespace _9fold::commands;
+using namespace _9fold::docks;
+using namespace _9fold::documents;
+using namespace _9fold::menus;
+using namespace _9fold::toolbars;
+using namespace _9fold::views;
+using namespace _9fold::widgets;
 
 class Workspace : public QObject
 {
     Q_OBJECT
 public:
-    explicit Workspace(QMainWindow *mainWindow, DocumentManager *documentManager,
-        ActionManager *actionManager, ToolBarManager *toolBarManager,
-        DockManager *dockManager, MenuManager *menuManager, QObject *parent = 0);
+    explicit Workspace(QMainWindow *mainWindow, CommandManager *commandManager,
+        DocumentManager *documentManager, ActionManager *actionManager,
+        ToolBarManager *toolBarManager, DockManager *dockManager,
+        MenuManager *menuManager, QObject *parent = 0);
     virtual ~Workspace();
 
     void addToolBar(Qt::ToolBarArea area, QToolBar *toolBar);
@@ -71,8 +105,10 @@ public:
     const QList<QToolBar*>& toolBars() const;
 
     ActionManager* actionManager() const;
+    CommandManager* commandManager() const;
     DockManager* dockManager() const;
     DocumentManager* documentManager() const;
+    MenuManager* menuManager() const;
     ToolBarManager* toolBarManager() const;
 
     QMainWindow* mainWindow() const;

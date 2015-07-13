@@ -17,13 +17,60 @@
 //
 
 #include "document.h"
+#include "documentpresenter.h"
+
+#include <QList>
 
 namespace _9fold
 {
 namespace documents
 {
 
-Document::Document(QObject *parent) : QObject(parent)
+class Document::DocumentPrivate
+{
+public:
+    DocumentPrivate(const QString& name)
+        : _name(name)
+    {
+
+    }
+
+    void attach(DocumentPresenter *presenter)
+    {
+        if (!_presenters.contains(presenter))
+            _presenters.append(presenter);
+    }
+
+    void detach(DocumentPresenter *presenter)
+    {
+        _presenters.removeAll(presenter);
+    }
+
+    DocumentPresenter* firstPresenter() const
+    {
+        if (_presenters.size() < 1)
+            return 0;
+
+        return _presenters.at(0);
+    }
+
+    const QList<DocumentPresenter*>& presenters() const
+    {
+        return _presenters;
+    }
+
+    const QString& name() const
+    {
+        return _name;
+    }
+
+private:
+    QString _name;
+    QList<DocumentPresenter*> _presenters;
+};
+
+Document::Document(const QString &name, QObject *parent)
+    : QObject(parent), _p(new DocumentPrivate(name))
 {
 
 }
@@ -31,6 +78,39 @@ Document::Document(QObject *parent) : QObject(parent)
 Document::~Document()
 {
 
+}
+
+void Document::attach(DocumentPresenter *presenter)
+{
+    Q_ASSERT(presenter);
+    if (!presenter)
+        return;
+
+    _p->attach(presenter);
+}
+
+void Document::detach(DocumentPresenter *presenter)
+{
+    Q_ASSERT(presenter);
+    if (!presenter)
+        return;
+
+    _p->detach(presenter);
+}
+
+DocumentPresenter* Document::firstPresenter() const
+{
+    return _p->firstPresenter();
+}
+
+const QList<DocumentPresenter*>& Document::presenters() const
+{
+    return _p->presenters();
+}
+
+const QString& Document::name() const
+{
+    return _p->name();
 }
 
 } // namespace documents

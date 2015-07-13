@@ -26,8 +26,8 @@ namespace actions
 class ActionManager::ActionManagerPrivate
 {
 public:
-    ActionManagerPrivate(QMainWindow *mainWindow)
-        : _mainWindow(mainWindow)
+    ActionManagerPrivate(QMainWindow *mainWindow, CommandManager *commandManager)
+        : _mainWindow(mainWindow), _commandManager(commandManager), _workspace(0)
     {
 
     }
@@ -37,12 +37,31 @@ public:
         return _mainWindow;
     }
 
+    CommandManager* commandManager() const
+    {
+        return _commandManager;
+    }
+
+    Workspace* workspace() const
+    {
+        Q_ASSERT(_workspace);
+        return _workspace;
+    }
+
+    void setWorkspace(Workspace *workspace)
+    {
+        _workspace = workspace;
+    }
+
 private:
     QMainWindow *_mainWindow;
+    CommandManager *_commandManager;
+    Workspace *_workspace;
 };
 
-ActionManager::ActionManager(QMainWindow *mainWindow, QObject *parent)
-    : QObject(parent), _p(new ActionManagerPrivate(mainWindow))
+ActionManager::ActionManager(QMainWindow *mainWindow, CommandManager *commandManager,
+        QObject *parent)
+    : QObject(parent), _p(new ActionManagerPrivate(mainWindow, commandManager))
 {
 
 }
@@ -55,6 +74,21 @@ ActionManager::~ActionManager()
 QMainWindow* ActionManager::mainWindow() const
 {
     return _p->mainWindow();
+}
+
+CommandManager* ActionManager::commandManager() const
+{
+    return _p->commandManager();
+}
+
+Workspace* ActionManager::workspace() const
+{
+    return _p->workspace();
+}
+
+void ActionManager::setWorkspace(Workspace *workspace)
+{
+    _p->setWorkspace(workspace);
 }
 
 } // namespace actions

@@ -17,26 +17,48 @@
 //
 
 #include "_9folddocumentmanager.h"
+#include "_9foldjavascriptdocument.h"
+#include "_9foldjavascriptdocumentview.h"
 
 #include <QtDebug>
+#include <QtGlobal>
 
 namespace _9fold
 {
 namespace documents
 {
 
+const QString kTemplateJavaScriptDocumentName = QT_TR_NOOP("Script%1.js");
+
 class _9FoldDocumentManager::_9FoldDocumentManagerPrivate
 {
 public:
     _9FoldDocumentManagerPrivate()
+        : _counter(0)
     {
 
     }
 
+    int counter() const
+    {
+        return _counter;
+    }
+
+    int incrementCounter()
+    {
+        return _counter++;
+    }
+
+    void decrementCounter()
+    {
+        _counter--;
+    }
+
 private:
+    int _counter;
 };
 
-_9FoldDocumentManager::_9FoldDocumentManager(DocumentViewManager *viewManager,
+_9FoldDocumentManager::_9FoldDocumentManager(_9FoldDocumentViewManager *viewManager,
     QObject *parent)
     : DocumentManager(viewManager, parent), _p(new _9FoldDocumentManagerPrivate())
 {
@@ -48,18 +70,36 @@ _9FoldDocumentManager::~_9FoldDocumentManager()
 
 }
 
-Document* _9FoldDocumentManager::createDocument()
+Document* _9FoldDocumentManager::createDocument(int documentType)
 {
-    return 0;
+    QScopedPointer<_9FoldDocument> _doc;
+    _9FoldDocument::Type type = static_cast<_9FoldDocument::Type>(documentType);
+    switch (type)
+    {
+        case _9FoldDocument::Type::JAVASCRIPT:
+        {
+            QString name = kTemplateJavaScriptDocumentName.arg(_p->incrementCounter());
+            _doc.reset(new _9FoldJavaScriptDocument(name, this));
+            break;
+        }
+        default:
+        {
+            Q_ASSERT(!"Unknown document type.");
+            break;
+        }
+    }
+
+    return _doc.take();
 }
 
-DocumentView* _9FoldDocumentManager::createDocumentView(Document *document)
+_9FoldDocument* _9FoldDocumentManager::createNewJavaScriptDocument()
 {
-    Q_ASSERT(document);
-    if (!document)
-        return 0;
+    QScopedPointer<_9FoldJavaScriptDocument> document(
+        static_cast<_9FoldJavaScriptDocument*>(createDocument(static_cast<int>(
+            _9FoldDocument::Type::JAVASCRIPT))));
 
-    return 0;
+    documentViewManager()->createView(document.data());
+    return document.take();
 }
 
 } // namespace documents

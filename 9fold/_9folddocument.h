@@ -33,11 +33,14 @@ class _9FoldDocument : public Document
 {
     Q_OBJECT
 public:
-    _9FoldDocument(QObject *parent = 0);
+    enum class Type : int {
+        JAVASCRIPT = 0
+    };
+
+    _9FoldDocument(const QString& name, Type type, QObject *parent = 0);
     virtual ~_9FoldDocument();
 
-    virtual void attach(DocumentPresenter *presenter);
-    virtual void detach(DocumentPresenter *presenter);
+    Type type() const;
 
 private:
     class _9FoldDocumentPrivate;

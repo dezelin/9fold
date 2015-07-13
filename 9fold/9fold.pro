@@ -34,7 +34,13 @@ SOURCES += main.cpp\
     _9foldworkspace.cpp \
     _9foldmainwindow.cpp \
     menumanager.cpp \
-    _9foldmenumanager.cpp
+    _9foldmenumanager.cpp \
+    commandmanager.cpp \
+    _9foldcommandmanager.cpp \
+    _9foldaction.cpp \
+    _9foldjavascriptdocument.cpp \
+    _9foldjavascriptdocumentpresenter.cpp \
+    _9foldjavascriptdocumentview.cpp
 
 HEADERS  += mainwindow.h \
     document.h \
@@ -57,7 +63,13 @@ HEADERS  += mainwindow.h \
     _9foldworkspace.h \
     _9foldmainwindow.h \
     menumanager.h \
-    _9foldmenumanager.h
+    _9foldmenumanager.h \
+    commandmanager.h \
+    _9foldcommandmanager.h \
+    _9foldaction.h \
+    _9foldjavascriptdocument.h \
+    _9foldjavascriptdocumentpresenter.h \
+    _9foldjavascriptdocumentview.h
 
 FORMS    += mainwindow.ui
 
@@ -102,3 +114,10 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldmultimedia/ -l9foldmultimedia
 
 INCLUDEPATH += $$PWD/../9foldmultimedia
 DEPENDPATH += $$PWD/../9foldmultimedia
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldscripting/release/ -l9foldscripting
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../9foldscripting/debug/ -l9foldscripting
+else:unix: LIBS += -L$$OUT_PWD/../9foldscripting/ -l9foldscripting
+
+INCLUDEPATH += $$PWD/../9foldscripting
+DEPENDPATH += $$PWD/../9foldscripting

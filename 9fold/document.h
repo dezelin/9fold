@@ -21,6 +21,7 @@
 
 #include "documentpresenter.h"
 
+#include <QList>
 #include <QObject>
 
 namespace _9fold
@@ -28,19 +29,30 @@ namespace _9fold
 namespace documents
 {
 
+using namespace _9fold::views;
+
 class Document : public QObject
 {
     Q_OBJECT
 public:
-    explicit Document(QObject *parent = 0);
+    explicit Document(const QString& name, QObject *parent = 0);
     virtual ~Document();
 
-    virtual void attach(DocumentPresenter *presenter) = 0;
-    virtual void detach(DocumentPresenter *presenter) = 0;
+    void attach(DocumentPresenter *presenter);
+    void detach(DocumentPresenter *presenter);
+
+    DocumentPresenter* firstPresenter() const;
+    const QList<DocumentPresenter*>& presenters() const;
+
+    const QString& name() const;
 
 signals:
 
 public slots:
+
+private:
+    class DocumentPrivate;
+    QScopedPointer<DocumentPrivate> _p;
 };
 
 } // namespace documents

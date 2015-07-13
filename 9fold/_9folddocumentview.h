@@ -27,14 +27,14 @@
 
 namespace _9fold
 {
-namespace documents
+namespace views
 {
 
 class _9FoldDocumentView : public DocumentView
 {
     Q_OBJECT
 public:
-    _9FoldDocumentView(QObject *parent = 0);
+    _9FoldDocumentView(QWidget *parent = 0);
     virtual ~_9FoldDocumentView();
 
 private:
@@ -42,7 +42,7 @@ private:
     QScopedPointer<_9FoldDocumentViewPrivate> _p;
 };
 
-} // namespace documents
+} // namespace views
 } // namespace _9fold
 
 #endif // _9FOLDDOCUMENTVIEW_H

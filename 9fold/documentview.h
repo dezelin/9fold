@@ -21,22 +21,26 @@
 
 #include "documentpresenter.h"
 
-#include <QObject>
+#include <QWidget>
 #include <QScopedPointer>
 
 namespace _9fold
 {
-namespace documents
+namespace views
 {
 
-class DocumentView : public QObject
+class DocumentView : public QWidget
 {
     Q_OBJECT
 public:
-    explicit DocumentView(QObject *parent = 0);
+    explicit DocumentView(QWidget *parent = 0);
     virtual ~DocumentView();
 
     virtual void attach(DocumentPresenter *presenter);
+    virtual void detach();
+
+    virtual DocumentPresenter* presenter() const;
+
 
 signals:
 
@@ -47,7 +51,7 @@ private:
     QScopedPointer<DocumentViewPrivate> _p;
 };
 
-} // namespace documents
+} // namespace views
 } // namespace _9fold
 
 #endif // DOCUMENTVIEW_H

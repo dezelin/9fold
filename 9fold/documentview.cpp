@@ -20,7 +20,7 @@
 
 namespace _9fold
 {
-namespace documents
+namespace views
 {
 
 //
@@ -40,6 +40,11 @@ public:
         _presenter = presenter;
     }
 
+    void detach()
+    {
+        _presenter = 0;
+    }
+
     DocumentPresenter* presenter() const
     {
         return _presenter;
@@ -49,8 +54,8 @@ private:
     DocumentPresenter *_presenter;
 };
 
-DocumentView::DocumentView(QObject *parent)
-    : QObject(parent), _p(new DocumentViewPrivate())
+DocumentView::DocumentView(QWidget *parent)
+    : QWidget(parent), _p(new DocumentViewPrivate())
 {
 
 }
@@ -65,7 +70,17 @@ void DocumentView::attach(DocumentPresenter *presenter)
     _p->attach(presenter);
 }
 
-} // namespace documents
+void DocumentView::detach()
+{
+    _p->detach();
+}
+
+DocumentPresenter* DocumentView::presenter() const
+{
+    return _p->presenter();
+}
+
+} // namespace views
 } // namespace _9fold
 
 

@@ -24,11 +24,18 @@
 
 namespace _9fold
 {
+
 namespace documents
 {
+    class Document;
+}
 
-class Document;
+namespace views
+{
+
 class DocumentView;
+
+using namespace _9fold::documents;
 
 class DocumentPresenter : public QObject
 {
@@ -50,7 +57,7 @@ private:
     QScopedPointer<DocumentPresenterPrivate> _p;
 };
 
-} // namespace documents
+} // namespace views
 } // namespace _9fold
 
 #endif // DOCUMENTPRESENTER_H

@@ -25,7 +25,7 @@
 
 namespace _9fold
 {
-namespace documents
+namespace views
 {
 
 //
@@ -80,5 +80,5 @@ DocumentView* DocumentPresenter::view() const
     return _p->view();
 }
 
-} // namespace documents
+} // namespace views
 } // namespace _9fold

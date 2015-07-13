@@ -20,8 +20,10 @@
 #define _9FOLDMENUMANAGER_H
 
 #include "menumanager.h"
+#include "_9foldactionmanager.h"
 
 #include <QMainWindow>
+#include <QMenu>
 #include <QObject>
 #include <QWidget>
 
@@ -33,8 +35,17 @@ namespace menus
 class _9FoldMenuManager : public MenuManager
 {
 public:
-    _9FoldMenuManager(QMainWindow *mainWindow, QObject *parent = 0);
+    _9FoldMenuManager(QMainWindow *mainWindow, _9FoldActionManager *actionManager,
+        QObject *parent = 0);
     virtual ~_9FoldMenuManager();
+
+    void addDefaultMenus();
+
+protected:
+    QMenu* createFileMenu();
+
+protected:
+    _9FoldActionManager* _actionManager() const;
 };
 
 } // namespace menus

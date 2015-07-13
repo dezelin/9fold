@@ -16,51 +16,40 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef MENUMANAGER_H
-#define MENUMANAGER_H
+#ifndef _9FOLDCOMMANDMANAGER_H
+#define _9FOLDCOMMANDMANAGER_H
 
-#include "actionmanager.h"
+#include "commandmanager.h"
 
-#include <QList>
-#include <QMainWindow>
-#include <QMenu>
 #include <QObject>
-#include <QScopedPointer>
-#include <QWidget>
 
 namespace _9fold
 {
-namespace menus
+
+namespace workspaces
+{
+    class _9FoldWorkspace;
+}
+
+namespace commands
 {
 
-using namespace _9fold::actions;
+using namespace _9fold::commands;
 
-class MenuManager : public QObject
+class _9FoldCommandManager : public CommandManager
 {
     Q_OBJECT
 public:
-    explicit MenuManager(QMainWindow *mainWindow, ActionManager *actionManager,
-        QObject *parent = 0);
-    virtual ~MenuManager();
+    _9FoldCommandManager(QObject *parent = 0);
+    virtual ~_9FoldCommandManager();
 
-    QMainWindow* mainWindow() const;
-
-    ActionManager* actionManager() const;
-
-    const QList<QMenu*>& menus() const;
-
-    void addMenu(QMenu *menu);
-
-signals:
-
-public slots:
+    GuiCommand* createNewJavaScriptCommand() const;
 
 private:
-    class MenuManagerPrivate;
-    QScopedPointer<MenuManagerPrivate> _p;
+    _9FoldWorkspace* _workspace() const;
 };
 
-} // namespace menus
+} // namespace commands
 } // namespace _9fold
 
-#endif // MENUMANAGER_H
+#endif // _9FOLDCOMMANDMANAGER_H
