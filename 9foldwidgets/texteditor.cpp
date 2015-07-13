@@ -16,26 +16,25 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "scriptingengine.h"
+#include "texteditor.h"
 
 namespace _9fold
 {
-namespace scripting
+namespace widgets
 {
-namespace engine
-{
-
-ScriptingEngine::ScriptingEngine(QObject *parent) : QObject(parent)
+namespace editors
 {
 
-}
-
-ScriptingEngine::~ScriptingEngine()
+TextEditor::TextEditor(QWidget *parent) : QTextEdit(parent)
 {
 
 }
 
-} // namespace engine
-} // namespace scripting
+TextEditor::~TextEditor()
+{
+
+}
+
+} // namespace editors;
+} // namespace widgets
 } // namespace _9fold
-

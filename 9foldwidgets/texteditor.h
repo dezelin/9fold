@@ -16,26 +16,33 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "scriptingengine.h"
+#ifndef TEXTEDITOR_H
+#define TEXTEDITOR_H
+
+#include <QTextEdit>
+#include <QWidget>
 
 namespace _9fold
 {
-namespace scripting
+namespace widgets
 {
-namespace engine
-{
-
-ScriptingEngine::ScriptingEngine(QObject *parent) : QObject(parent)
+namespace editors
 {
 
-}
-
-ScriptingEngine::~ScriptingEngine()
+class TextEditor : public QTextEdit
 {
+    Q_OBJECT
+public:
+    explicit TextEditor(QWidget *parent = 0);
+    virtual ~TextEditor();
 
-}
+signals:
 
-} // namespace engine
-} // namespace scripting
+public slots:
+};
+
+} // namespace editors;
+} // namespace widgets
 } // namespace _9fold
 
+#endif // TEXTEDITOR_H

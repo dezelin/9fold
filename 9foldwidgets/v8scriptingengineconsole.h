@@ -16,26 +16,32 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "scriptingengine.h"
+#ifndef V8SCRIPTINGENGINECONSOLE_H
+#define V8SCRIPTINGENGINECONSOLE_H
+
+#include <QWidget>
 
 namespace _9fold
 {
+namespace widgets
+{
 namespace scripting
 {
-namespace engine
+
+class V8ScriptingEngineConsole : public QWidget
 {
+    Q_OBJECT
+public:
+    explicit V8ScriptingEngineConsole(QWidget *parent = 0);
+    virtual ~V8ScriptingEngineConsole();
 
-ScriptingEngine::ScriptingEngine(QObject *parent) : QObject(parent)
-{
+signals:
 
-}
+public slots:
+};
 
-ScriptingEngine::~ScriptingEngine()
-{
-
-}
-
-} // namespace engine
 } // namespace scripting
+} // namespace widgets
 } // namespace _9fold
 
+#endif // V8SCRIPTINGENGINECONSOLE_H

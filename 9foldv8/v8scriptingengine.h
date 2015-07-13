@@ -26,6 +26,8 @@
 
 namespace _9fold
 {
+namespace scripting
+{
 namespace engine
 {
 
@@ -44,6 +46,7 @@ private:
 };
 
 } // namespace engine
+} // namespace scripting
 } // namespace _9fold
 
 #endif // V8SCRIPTINGENGINE_H

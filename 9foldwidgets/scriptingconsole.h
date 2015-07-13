@@ -16,26 +16,45 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "scriptingengine.h"
+#ifndef SCRIPTINGCONSOLE_H
+#define SCRIPTINGCONSOLE_H
+
+#include "texteditor.h"
+
+#include <scriptingengine.h>
+
+#include <QScopedPointer>
+#include <QWidget>
 
 namespace _9fold
 {
+namespace widgets
+{
 namespace scripting
 {
-namespace engine
+
+using namespace _9fold::widgets::editors;
+using namespace _9fold::scripting::engine;
+
+class ScriptingConsole : public QWidget
 {
+    Q_OBJECT
+public:
+    explicit ScriptingConsole(TextEditor *display, TextEditor *input,
+        ScriptingEngine *engine, QWidget *parent = 0);
+    virtual ~ScriptingConsole();
 
-ScriptingEngine::ScriptingEngine(QObject *parent) : QObject(parent)
-{
+signals:
 
-}
+public slots:
 
-ScriptingEngine::~ScriptingEngine()
-{
+private:
+    class ScriptingConsolePrivate;
+    QScopedPointer<ScriptingConsolePrivate> _p;
+};
 
-}
-
-} // namespace engine
 } // namespace scripting
+} // namespace widgets
 } // namespace _9fold
 
+#endif // SCRIPTINGCONSOLE_H

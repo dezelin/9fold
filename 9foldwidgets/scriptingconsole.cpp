@@ -16,26 +16,57 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "scriptingengine.h"
+#include "scriptingconsole.h"
 
 namespace _9fold
 {
+namespace widgets
+{
 namespace scripting
 {
-namespace engine
-{
 
-ScriptingEngine::ScriptingEngine(QObject *parent) : QObject(parent)
+class ScriptingConsole::ScriptingConsolePrivate
+{
+public:
+    ScriptingConsolePrivate(TextEditor *display, TextEditor *input, ScriptingEngine *engine)
+        : _display(display), _input(input), _engine(engine)
+    {
+
+    }
+
+    TextEditor* display() const
+    {
+        return _display;
+    }
+
+    TextEditor* input() const
+    {
+        return _input;
+    }
+
+    ScriptingEngine* engine() const
+    {
+        return _engine;
+    }
+
+private:
+    TextEditor *_display;
+    TextEditor *_input;
+    ScriptingEngine *_engine;
+};
+
+ScriptingConsole::ScriptingConsole(TextEditor *display, TextEditor *input,
+    ScriptingEngine *engine, QWidget *parent)
+    : QWidget(parent), _p(new ScriptingConsolePrivate(display, input, engine))
 {
 
 }
 
-ScriptingEngine::~ScriptingEngine()
+ScriptingConsole::~ScriptingConsole()
 {
 
 }
 
-} // namespace engine
 } // namespace scripting
+} // namespace widgets
 } // namespace _9fold
-

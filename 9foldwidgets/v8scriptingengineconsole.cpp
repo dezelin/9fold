@@ -16,26 +16,26 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "scriptingengine.h"
+#include "v8scriptingengineconsole.h"
 
 namespace _9fold
 {
+namespace widgets
+{
 namespace scripting
 {
-namespace engine
-{
 
-ScriptingEngine::ScriptingEngine(QObject *parent) : QObject(parent)
-{
 
-}
-
-ScriptingEngine::~ScriptingEngine()
+V8ScriptingEngineConsole::V8ScriptingEngineConsole(QWidget *parent) : QWidget(parent)
 {
 
 }
 
-} // namespace engine
+V8ScriptingEngineConsole::~V8ScriptingEngineConsole()
+{
+
+}
+
 } // namespace scripting
+} // namespace widgets
 } // namespace _9fold
-

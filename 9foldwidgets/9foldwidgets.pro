@@ -17,12 +17,18 @@ DEFINES += _9FOLDWIDGETS_LIBRARY
 
 SOURCES += _9foldwidgets.cpp \
     centralwidget.cpp \
-    _9foldcentralwidget.cpp
+    _9foldcentralwidget.cpp \
+    v8scriptingengineconsole.cpp \
+    texteditor.cpp \
+    scriptingconsole.cpp
 
 HEADERS += _9foldwidgets.h\
         9foldwidgets_global.h \
     centralwidget.h \
-    _9foldcentralwidget.h
+    _9foldcentralwidget.h \
+    v8scriptingengineconsole.h \
+    texteditor.h \
+    scriptingconsole.h
 
 unix {
     target.path = /usr/lib
@@ -56,3 +62,10 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldpatterns/ -l9foldpatterns
 
 INCLUDEPATH += $$PWD/../9foldpatterns
 DEPENDPATH += $$PWD/../9foldpatterns
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldscripting/release/ -l9foldscripting
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../9foldscripting/debug/ -l9foldscripting
+else:unix: LIBS += -L$$OUT_PWD/../9foldscripting/ -l9foldscripting
+
+INCLUDEPATH += $$PWD/../9foldscripting
+DEPENDPATH += $$PWD/../9foldscripting

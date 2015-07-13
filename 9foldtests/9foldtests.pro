@@ -19,7 +19,14 @@ SOURCES += \
     9foldtest.cpp \
     9foldpatterns/singletontest.cpp \
     9foldpatterns/observertest.cpp
+
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+
+HEADERS += \
+    9foldtestrunner.h \
+    9foldtest.h \
+    9foldpatterns/singletontest.h \
+    9foldpatterns/observertest.h
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldpatterns/release/ -l9foldpatterns
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../9foldpatterns/debug/ -l9foldpatterns
@@ -63,8 +70,16 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldmultimedia/ -l9foldmultimedia
 INCLUDEPATH += $$PWD/../9foldmultimedia
 DEPENDPATH += $$PWD/../9foldmultimedia
 
-HEADERS += \
-    9foldtestrunner.h \
-    9foldtest.h \
-    9foldpatterns/singletontest.h \
-    9foldpatterns/observertest.h
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldscripting/release/ -l9foldscripting
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../9foldscripting/debug/ -l9foldscripting
+else:unix: LIBS += -L$$OUT_PWD/../9foldscripting/ -l9foldscripting
+
+INCLUDEPATH += $$PWD/../9foldscripting
+DEPENDPATH += $$PWD/../9foldscripting
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldv8/release/ -l9foldv8
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../9foldv8/debug/ -l9foldv8
+else:unix: LIBS += -L$$OUT_PWD/../9foldv8/ -l9foldv8
+
+INCLUDEPATH += $$PWD/../9foldv8
+DEPENDPATH += $$PWD/../9foldv8

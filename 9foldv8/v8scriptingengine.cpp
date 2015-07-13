@@ -22,6 +22,8 @@
 
 namespace _9fold
 {
+namespace scripting
+{
 namespace engine
 {
 
@@ -91,4 +93,5 @@ QString V8ScriptingEngine::run(const QString& script)
 }
 
 } // namespace engine
+} // namespace scripting
 } // namespace _9fold

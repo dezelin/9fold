@@ -24,6 +24,8 @@
 
 namespace _9fold
 {
+namespace scripting
+{
 namespace engine
 {
 
@@ -42,6 +44,7 @@ public slots:
 };
 
 } // namespace engine
+} // namespace scripting
 } // namespace _9fold
 
 #endif // SCRIPTINGENGINE_H
