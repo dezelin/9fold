@@ -1,22 +1,24 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2015-07-12T03:29:25
+# Project created by QtCreator 2015-07-12T05:25:43
 #
 #-------------------------------------------------
 
 QT       -= gui
 
-TARGET = 9foldpython
+TARGET = 9foldv8
 TEMPLATE = lib
 
 QMAKE_CXXFLAGS += -std=c++11
 
-DEFINES += _9FOLDPYTHON_LIBRARY
+DEFINES += _9FOLDV8_LIBRARY
 
-SOURCES += _9foldpython.cpp
+SOURCES += _9foldv8.cpp \
+    v8scriptingengine.cpp
 
-HEADERS += _9foldpython.h\
-        9foldpython_global.h
+HEADERS += _9foldv8.h\
+        9foldv8_global.h \
+    v8scriptingengine.h
 
 unix {
     target.path = /usr/lib
@@ -29,3 +31,5 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldscripting/ -l9foldscripting
 
 INCLUDEPATH += $$PWD/../9foldscripting
 DEPENDPATH += $$PWD/../9foldscripting
+
+LIBS += -lv8
