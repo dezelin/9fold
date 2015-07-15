@@ -18,15 +18,23 @@
 
 #include "_9foldjavascriptdocumentview.h"
 
+#include <javascripttexteditor.h>
+
+#include <QVBoxLayout>
+
 namespace _9fold
 {
 namespace views
 {
 
+using namespace _9fold::widgets::editors;
+
 _9FoldJavaScriptDocumentView::_9FoldJavaScriptDocumentView(QWidget *parent)
     : _9FoldDocumentView(parent)
 {
-
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->addWidget(new JavaScriptTextEditor());
+    layout->setContentsMargins(0, 0, 0, 0);
 }
 
 _9FoldJavaScriptDocumentView::~_9FoldJavaScriptDocumentView()

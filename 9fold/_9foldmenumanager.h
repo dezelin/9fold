@@ -43,6 +43,7 @@ public:
 
 protected:
     QMenu* createFileMenu();
+    QMenu* createViewMenu();
 
 protected:
     _9FoldActionManager* _actionManager() const;

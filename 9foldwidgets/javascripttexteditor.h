@@ -16,11 +16,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef V8SCRIPTINGENGINECONSOLE_H
-#define V8SCRIPTINGENGINECONSOLE_H
+#ifndef JAVASCRIPTTEXTEDITOR_H
+#define JAVASCRIPTTEXTEDITOR_H
 
-#include "scriptingconsole.h"
-#include "scriptingengine.h"
 #include "texteditor.h"
 
 #include <QWidget>
@@ -29,23 +27,18 @@ namespace _9fold
 {
 namespace widgets
 {
-namespace scripting
+namespace editors
 {
 
-class V8ScriptingEngineConsole : public ScriptingConsole
+class JavaScriptTextEditor : public TextEditor
 {
-    Q_OBJECT
 public:
-    explicit V8ScriptingEngineConsole(QWidget *parent = 0);
-    virtual ~V8ScriptingEngineConsole();
-
-signals:
-
-public slots:
+    JavaScriptTextEditor(QWidget *parent = 0);
+    virtual ~JavaScriptTextEditor();
 };
 
-} // namespace scripting
+} // namespace editors
 } // namespace widgets
 } // namespace _9fold
 
-#endif // V8SCRIPTINGENGINECONSOLE_H
+#endif // JAVASCRIPTTEXTEDITOR_H

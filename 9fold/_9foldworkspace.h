@@ -80,6 +80,7 @@ public:
     virtual ~_9FoldWorkspace();
 
     void addNewJavaScriptDocument();
+    void viewJavaScriptConsole();
 
 protected:
     _9FoldDocumentManager* _documentManager() const;

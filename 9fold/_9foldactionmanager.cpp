@@ -46,6 +46,15 @@ QAction* _9FoldActionManager::createNew()
     return action;
 }
 
+QAction* _9FoldActionManager::createViewV8Console()
+{
+    _9FoldAction *action = new _9FoldAction(_commandManager(),
+        _commandManager()->createViewJavaScriptConsoleCommand(), tr("View &JavaScript console"),
+        parent());
+
+    return action;
+}
+
 _9FoldCommandManager* _9FoldActionManager::_commandManager() const
 {
     return static_cast<_9FoldCommandManager*>(commandManager());

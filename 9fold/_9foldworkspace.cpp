@@ -26,12 +26,15 @@
 #include "_9foldtoolbarmanager.h"
 
 #include <_9foldcentralwidget.h>
+#include <v8scriptingengineconsole.h>
 
 
 namespace _9fold
 {
 namespace workspaces
 {
+
+using namespace _9fold::widgets::scripting;
 
 _9FoldWorkspace::_9FoldWorkspace(QMainWindow *mainWindow,
     _9FoldCommandManager *commandManager, _9FoldDocumentManager *documentManager,
@@ -74,6 +77,15 @@ void _9FoldWorkspace::addNewJavaScriptDocument()
     centralWidget()->addTab(view, document->name() + "*");
 
     _documentManager()->addDocument(document.take());
+}
+
+void _9FoldWorkspace::viewJavaScriptConsole()
+{
+    QScopedPointer<QDockWidget> dock(new QDockWidget(tr("JavaScript console"),
+        mainWindow()));
+    dock->setWidget(new V8ScriptingEngineConsole());
+    dock->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+    addDock(Qt::BottomDockWidgetArea, dock.take());
 }
 
 } // namespace workspaces

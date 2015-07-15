@@ -62,5 +62,27 @@ _9FoldCommandManager::GuiCommand* _9FoldCommandManager::createNewJavaScriptComma
     return new NewJavaScriptCommand(_workspace());
 }
 
+_9FoldCommandManager::GuiCommand* _9FoldCommandManager::createViewJavaScriptConsoleCommand() const
+{
+    struct ViewJavaScriptConsoleCommand : public GuiCommand
+    {
+        ViewJavaScriptConsoleCommand(_9FoldWorkspace *workspace) : GuiCommand(), _workspace(workspace)
+        {
+
+        }
+
+        virtual void execute()
+        {
+            Q_ASSERT(_workspace);
+            _workspace->viewJavaScriptConsole();
+        }
+
+    private:
+        _9FoldWorkspace *_workspace;
+    };
+
+    return new ViewJavaScriptConsoleCommand(_workspace());
+}
+
 } // namespace commands
 } // namespace _9fold

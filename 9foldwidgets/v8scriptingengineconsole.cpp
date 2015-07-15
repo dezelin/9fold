@@ -16,7 +16,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+#include "javascripttexteditor.h"
 #include "v8scriptingengineconsole.h"
+
+#include <v8scriptingengine.h>
 
 namespace _9fold
 {
@@ -25,8 +28,13 @@ namespace widgets
 namespace scripting
 {
 
+using namespace _9fold::scripting::engine;
 
-V8ScriptingEngineConsole::V8ScriptingEngineConsole(QWidget *parent) : QWidget(parent)
+using namespace _9fold::widgets::editors;
+
+V8ScriptingEngineConsole::V8ScriptingEngineConsole(QWidget *parent)
+    : ScriptingConsole(new JavaScriptTextEditor(), new JavaScriptTextEditor(),
+        new V8ScriptingEngine(), parent)
 {
 
 }

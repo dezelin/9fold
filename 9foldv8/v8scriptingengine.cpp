@@ -40,6 +40,8 @@ public:
         _isolate = Isolate::New();
         Q_ASSERT(_isolate);
 
+        HandleScope _handleScope;
+
         _global = ObjectTemplate::New();
         Q_ASSERT(!_global.IsEmpty());
 
@@ -51,9 +53,7 @@ public:
 
     ~V8ScriptingEnginePrivate()
     {
-        Q_ASSERT(_isolate);
         _isolate->Dispose();
-
         V8::Dispose();
     }
 

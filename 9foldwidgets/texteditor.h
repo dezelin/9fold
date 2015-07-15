@@ -22,6 +22,10 @@
 #include <QTextEdit>
 #include <QWidget>
 
+#include <9foldgeometry_global.h>
+
+#include <Qsci/qsciscintilla.h>
+
 namespace _9fold
 {
 namespace widgets
@@ -29,7 +33,7 @@ namespace widgets
 namespace editors
 {
 
-class TextEditor : public QTextEdit
+class TextEditor : public QsciScintilla
 {
     Q_OBJECT
 public:

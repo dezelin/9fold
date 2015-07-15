@@ -49,6 +49,7 @@ public:
     virtual ~_9FoldActionManager();
 
     QAction* createNew();
+    QAction* createViewV8Console();
 
 private:
     _9FoldCommandManager* _commandManager() const;

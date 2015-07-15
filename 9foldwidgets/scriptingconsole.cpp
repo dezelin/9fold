@@ -18,6 +18,8 @@
 
 #include "scriptingconsole.h"
 
+#include <QVBoxLayout>
+
 namespace _9fold
 {
 namespace widgets
@@ -59,7 +61,18 @@ ScriptingConsole::ScriptingConsole(TextEditor *display, TextEditor *input,
     ScriptingEngine *engine, QWidget *parent)
     : QWidget(parent), _p(new ScriptingConsolePrivate(display, input, engine))
 {
+    Q_ASSERT(display);
+    Q_ASSERT(input);
+    Q_ASSERT(engine);
 
+    engine->setParent(this);
+    input->setMaximumHeight(QFontMetrics(input->font()).height() * 2);
+
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->addWidget(display);
+    layout->addWidget(input);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
 }
 
 ScriptingConsole::~ScriptingConsole()

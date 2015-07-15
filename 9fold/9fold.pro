@@ -121,3 +121,10 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldscripting/ -l9foldscripting
 
 INCLUDEPATH += $$PWD/../9foldscripting
 DEPENDPATH += $$PWD/../9foldscripting
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldv8/release/ -l9foldv8
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../9foldv8/debug/ -l9foldv8
+else:unix: LIBS += -L$$OUT_PWD/../9foldv8/ -l9foldv8
+
+INCLUDEPATH += $$PWD/../9foldv8
+DEPENDPATH += $$PWD/../9foldv8

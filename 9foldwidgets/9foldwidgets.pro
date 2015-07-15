@@ -11,6 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += printsupport
 TARGET = 9foldwidgets
 TEMPLATE = lib
 
+CONFIG += qscintilla2
+
 QMAKE_CXXFLAGS += -std=c++11
 
 DEFINES += _9FOLDWIDGETS_LIBRARY
@@ -20,7 +22,8 @@ SOURCES += _9foldwidgets.cpp \
     _9foldcentralwidget.cpp \
     v8scriptingengineconsole.cpp \
     texteditor.cpp \
-    scriptingconsole.cpp
+    scriptingconsole.cpp \
+    javascripttexteditor.cpp
 
 HEADERS += _9foldwidgets.h\
         9foldwidgets_global.h \
@@ -28,7 +31,8 @@ HEADERS += _9foldwidgets.h\
     _9foldcentralwidget.h \
     v8scriptingengineconsole.h \
     texteditor.h \
-    scriptingconsole.h
+    scriptingconsole.h \
+    javascripttexteditor.h
 
 unix {
     target.path = /usr/lib
@@ -69,3 +73,10 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldscripting/ -l9foldscripting
 
 INCLUDEPATH += $$PWD/../9foldscripting
 DEPENDPATH += $$PWD/../9foldscripting
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../9foldv8/release/ -l9foldv8
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../9foldv8/debug/ -l9foldv8
+else:unix: LIBS += -L$$OUT_PWD/../9foldv8/ -l9foldv8
+
+INCLUDEPATH += $$PWD/../9foldv8
+DEPENDPATH += $$PWD/../9foldv8
