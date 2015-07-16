@@ -23,7 +23,9 @@ SOURCES += _9foldwidgets.cpp \
     v8scriptingengineconsole.cpp \
     texteditor.cpp \
     scriptingconsole.cpp \
-    javascripttexteditor.cpp
+    javascripttexteditor.cpp \
+    scriptingconsoleeditor.cpp \
+    javascriptconsoleeditor.cpp
 
 HEADERS += _9foldwidgets.h\
         9foldwidgets_global.h \
@@ -32,7 +34,9 @@ HEADERS += _9foldwidgets.h\
     v8scriptingengineconsole.h \
     texteditor.h \
     scriptingconsole.h \
-    javascripttexteditor.h
+    javascripttexteditor.h \
+    scriptingconsoleeditor.h \
+    javascriptconsoleeditor.h
 
 unix {
     target.path = /usr/lib

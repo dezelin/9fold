@@ -36,6 +36,8 @@ public:
     explicit ScriptingEngine(QObject *parent = 0);
     virtual ~ScriptingEngine();
 
+    virtual QString version() const = 0;
+
     virtual QString run(const QString& script) = 0;
 
 signals:

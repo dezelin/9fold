@@ -18,6 +18,8 @@
 
 #include "javascripttexteditor.h"
 
+#include <Qsci/qscilexerjavascript.h>
+
 namespace _9fold
 {
 namespace widgets
@@ -28,7 +30,8 @@ namespace editors
 JavaScriptTextEditor::JavaScriptTextEditor(QWidget *parent)
     : TextEditor(parent)
 {
-
+    setLexer(new QsciLexerJavaScript());
+    setWrapMode(QsciScintilla::WrapCharacter);
 }
 
 JavaScriptTextEditor::~JavaScriptTextEditor()

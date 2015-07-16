@@ -30,20 +30,15 @@ namespace scripting
 class ScriptingConsole::ScriptingConsolePrivate
 {
 public:
-    ScriptingConsolePrivate(TextEditor *display, TextEditor *input, ScriptingEngine *engine)
-        : _display(display), _input(input), _engine(engine)
+    ScriptingConsolePrivate(ScriptingConsoleEditor *editor, ScriptingEngine *engine)
+        : _editor(editor), _engine(engine)
     {
 
     }
 
-    TextEditor* display() const
+    ScriptingConsoleEditor* editor() const
     {
-        return _display;
-    }
-
-    TextEditor* input() const
-    {
-        return _input;
+        return _editor;
     }
 
     ScriptingEngine* engine() const
@@ -52,32 +47,46 @@ public:
     }
 
 private:
-    TextEditor *_display;
-    TextEditor *_input;
+    ScriptingConsoleEditor *_editor;
     ScriptingEngine *_engine;
 };
 
-ScriptingConsole::ScriptingConsole(TextEditor *display, TextEditor *input,
+ScriptingConsole::ScriptingConsole(ScriptingConsoleEditor *editor,
     ScriptingEngine *engine, QWidget *parent)
-    : QWidget(parent), _p(new ScriptingConsolePrivate(display, input, engine))
+    : QWidget(parent), _p(new ScriptingConsolePrivate(editor, engine))
 {
-    Q_ASSERT(display);
-    Q_ASSERT(input);
+    Q_ASSERT(editor);
     Q_ASSERT(engine);
 
+    editor->setParent(this);
     engine->setParent(this);
-    input->setMaximumHeight(QFontMetrics(input->font()).height() * 2);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(display);
-    layout->addWidget(input);
+    layout->addWidget(editor);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
+
+    connect(editor, SIGNAL(execute(QString)), this, SLOT(execute(QString)));
 }
 
 ScriptingConsole::~ScriptingConsole()
 {
 
+}
+
+ScriptingConsoleEditor* ScriptingConsole::editor() const
+{
+    return _p->editor();
+}
+
+ScriptingEngine* ScriptingConsole::engine()
+{
+    return _p->engine();
+}
+
+void ScriptingConsole::execute(const QString& text)
+{
+    QString result = engine()->run(text);
+    editor()->addText(result);
 }
 
 } // namespace scripting

@@ -19,7 +19,7 @@
 #ifndef SCRIPTINGCONSOLE_H
 #define SCRIPTINGCONSOLE_H
 
-#include "texteditor.h"
+#include "scriptingconsoleeditor.h"
 
 #include <scriptingengine.h>
 
@@ -40,13 +40,15 @@ class ScriptingConsole : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ScriptingConsole(TextEditor *display, TextEditor *input,
+    explicit ScriptingConsole(ScriptingConsoleEditor *editor,
         ScriptingEngine *engine, QWidget *parent = 0);
     virtual ~ScriptingConsole();
 
-signals:
+    ScriptingConsoleEditor* editor() const;
+    ScriptingEngine* engine();
 
-public slots:
+private slots:
+    void execute(const QString &text);
 
 private:
     class ScriptingConsolePrivate;

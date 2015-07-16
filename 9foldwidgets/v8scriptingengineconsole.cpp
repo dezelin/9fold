@@ -16,7 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "javascripttexteditor.h"
+#include "javascriptconsoleeditor.h"
 #include "v8scriptingengineconsole.h"
 
 #include <v8scriptingengine.h>
@@ -33,10 +33,10 @@ using namespace _9fold::scripting::engine;
 using namespace _9fold::widgets::editors;
 
 V8ScriptingEngineConsole::V8ScriptingEngineConsole(QWidget *parent)
-    : ScriptingConsole(new JavaScriptTextEditor(), new JavaScriptTextEditor(),
-        new V8ScriptingEngine(), parent)
+    : ScriptingConsole(new JavaScriptConsoleEditor(), new V8ScriptingEngine(), parent)
 {
-
+    QString version = "Google V8 engine version " + engine()->version();
+    editor()->addText(version);
 }
 
 V8ScriptingEngineConsole::~V8ScriptingEngineConsole()

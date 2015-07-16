@@ -46,14 +46,14 @@ void _9FoldMenuManager::addDefaultMenus()
 
 QMenu* _9FoldMenuManager::createFileMenu()
 {
-    QMenu *menu = new QMenu(tr("&File"));
+    QMenu *menu = new QMenu(tr("&File"), mainWindow());
     menu->insertAction(0, _actionManager()->createNew());
     return menu;
 }
 
 QMenu* _9FoldMenuManager::createViewMenu()
 {
-    QMenu *menu = new QMenu(tr("&View"));
+    QMenu *menu = new QMenu(tr("&View"), mainWindow());
     menu->insertAction(0, _actionManager()->createViewV8Console());
     return menu;
 }

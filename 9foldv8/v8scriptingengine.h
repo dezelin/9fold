@@ -38,7 +38,9 @@ public:
     V8ScriptingEngine(QObject *parent = 0);
     virtual ~V8ScriptingEngine();
 
-    QString run(const QString& script);
+    virtual QString version() const;
+
+    virtual QString run(const QString& script);
 
 private:
     class V8ScriptingEnginePrivate;

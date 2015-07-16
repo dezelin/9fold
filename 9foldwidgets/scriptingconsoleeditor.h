@@ -16,16 +16,13 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef TEXTEDITOR_H
-#define TEXTEDITOR_H
+#ifndef SCRIPTINGCONSOLEEDITOR_H
+#define SCRIPTINGCONSOLEEDITOR_H
 
-#include <QKeyEvent>
-#include <QTextEdit>
+#include "texteditor.h"
+
+#include <QScopedPointer>
 #include <QWidget>
-
-#include <9foldgeometry_global.h>
-
-#include <Qsci/qsciscintilla.h>
 
 namespace _9fold
 {
@@ -34,16 +31,40 @@ namespace widgets
 namespace editors
 {
 
-class TextEditor : public QsciScintilla
+class ScriptingConsoleEditor : public TextEditor
 {
     Q_OBJECT
 public:
-    explicit TextEditor(QWidget *parent = 0);
-    virtual ~TextEditor();
+    ScriptingConsoleEditor(QWidget *parent = 0);
+    virtual ~ScriptingConsoleEditor();
+
+    void addText(const QString& text);
+
+signals:
+    void keyPressBackspace();
+    void keyPressEnter();
+    void keyPressLeft();
+    void keyPressUp();
+    void keyPressDown();
+
+    void execute(const QString& text);
+
+protected slots:
+    void onKeyPressEnter();
+    void onKeyPressUp();
+    void onKeyPressDown();
+    void onCursorPositionChanged(int line, int index);
+
+protected:
+    virtual void keyPressEvent(QKeyEvent *event);
+
+private:
+    class ScriptingConsoleEditorPrivate;
+    QScopedPointer<ScriptingConsoleEditorPrivate> _p;
 };
 
 } // namespace editors;
 } // namespace widgets
 } // namespace _9fold
 
-#endif // TEXTEDITOR_H
+#endif // SCRIPTINGCONSOLEEDITOR_H

@@ -16,16 +16,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef TEXTEDITOR_H
-#define TEXTEDITOR_H
+#include "javascriptconsoleeditor.h"
 
-#include <QKeyEvent>
-#include <QTextEdit>
-#include <QWidget>
-
-#include <9foldgeometry_global.h>
-
-#include <Qsci/qsciscintilla.h>
+#include <Qsci/qscilexerjavascript.h>
 
 namespace _9fold
 {
@@ -34,16 +27,17 @@ namespace widgets
 namespace editors
 {
 
-class TextEditor : public QsciScintilla
+JavaScriptConsoleEditor::JavaScriptConsoleEditor(QWidget *parent) : ScriptingConsoleEditor(parent)
 {
-    Q_OBJECT
-public:
-    explicit TextEditor(QWidget *parent = 0);
-    virtual ~TextEditor();
-};
+    setLexer(new QsciLexerJavaScript(this));
+    setWrapMode(QsciScintilla::WrapCharacter);
+}
+
+JavaScriptConsoleEditor::~JavaScriptConsoleEditor()
+{
+
+}
 
 } // namespace editors;
 } // namespace widgets
 } // namespace _9fold
-
-#endif // TEXTEDITOR_H
