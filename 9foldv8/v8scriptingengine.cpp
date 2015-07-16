@@ -35,10 +35,12 @@ public:
     V8ScriptingEnginePrivate()
     {
         V8::Initialize();
+        _isolate = Isolate::New();
     }
 
     ~V8ScriptingEnginePrivate()
     {
+        _isolate->Dispose();
     }
 
     void EncapsulateGlobal(Local<ObjectTemplate>& global)
@@ -48,52 +50,46 @@ public:
 
     QString run(const QString& script)
     {
+        Isolate::Scope scope(_isolate);
+
+        // Create a stack-allocated handle scope.
+        HandleScope handleScope;
+
+        // Create global object
+        Local<ObjectTemplate> global = ObjectTemplate::New();
+        EncapsulateGlobal(global);
+
+        // Create a new context.
+        if (_context.IsEmpty())
+            _context = Context::New(0, global);
+
+        // Enter the context for compiling and running the script.
+        Context::Scope contextScope(_context);
+
+        // Create a string containing the JavaScript source code.
+        Local<String> source = String::New(script.toLatin1().data());
+
+        // Catch compilation and evaluation errors
+        TryCatch trycatch;
+
+        // Compile the source code.
         QString result;
-
-        // Create a new isolate
-        Isolate *isolate = Isolate::New();
-
-        {
-            Isolate::Scope scope(isolate);
-
-            // Create a stack-allocated handle scope.
-            HandleScope handleScope;
-
-            // Create global object
-            Local<ObjectTemplate> global = ObjectTemplate::New();
-            EncapsulateGlobal(global);
-
-            // Create a new context.
-            Persistent<Context> context = Context::New(0, global);
-
-            // Enter the context for compiling and running the script.
-            Context::Scope contextScope(context);
-
-            // Create a string containing the JavaScript source code.
-            Local<String> source = String::New(script.toLatin1().data());
-
-            // Catch compilation and evaluation errors
-            TryCatch trycatch;
-
-            // Compile the source code.
-            Local<Script> _script = Script::Compile(source);
-            if (!_script.IsEmpty()) {
-                // Run the script to get the result.
-                Local<Value> _value = _script->Run();
-                if (!_value.IsEmpty())
-                    result = QString::fromLatin1(*String::Utf8Value(_value));
-                else {
-                    String::Utf8Value exception(trycatch.Exception());
-                    result = QString(*exception);
-                }
-            }
+        Local<Script> _script = Script::Compile(source);
+        if (!_script.IsEmpty()) {
+            // Run the script to get the result.
+            Local<Value> _value = _script->Run();
+            if (!_value.IsEmpty())
+                result = QString::fromLatin1(*String::Utf8Value(_value));
             else {
                 String::Utf8Value exception(trycatch.Exception());
                 result = QString(*exception);
             }
         }
+        else {
+            String::Utf8Value exception(trycatch.Exception());
+            result = QString(*exception);
+        }
 
-        isolate->Dispose();
         return result;
     }
 
@@ -101,6 +97,10 @@ public:
     {
         return QString(V8::GetVersion());
     }
+
+private:
+    Isolate *_isolate;
+    Persistent<Context> _context;
 };
 
 V8ScriptingEngine::V8ScriptingEngine(QObject *parent)
