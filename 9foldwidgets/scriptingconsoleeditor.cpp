@@ -32,7 +32,10 @@ namespace editors
 class ScriptingConsoleEditor::ScriptingConsoleEditorPrivate
 {
 public:
-    ScriptingConsoleEditorPrivate() : _historyIndex(0)
+    ScriptingConsoleEditorPrivate()
+        : _line(0)
+        , _index(0)
+        , _historyIndex(0)
     {
 
     }
@@ -46,14 +49,34 @@ public:
         resetHistoryIndex();
     }
 
-    bool empty()
+    int line() const
+    {
+        return _line;
+    }
+
+    int index() const
+    {
+        return _index;
+    }
+
+    void setLine(int line)
+    {
+        _line = line;
+    }
+
+    void setIndex(int index)
+    {
+        _index = index;
+    }
+
+    bool emptyHistory()
     {
         return _history.length() == 0;
     }
 
     QString previousHistoryIndex()
     {
-        if (empty())
+        if (emptyHistory())
             return QString();
 
         return _history[_historyIndex > 0 ? --_historyIndex : 0];
@@ -61,7 +84,7 @@ public:
 
     QString nextHistoryIndex()
     {
-        if (empty())
+        if (emptyHistory())
             return QString();
 
         if (_historyIndex == _history.length())
@@ -77,6 +100,8 @@ public:
     }
 
 private:
+    int _line;
+    int _index;
     int _historyIndex;
     QVector<QString> _history;
 };
@@ -150,6 +175,19 @@ void ScriptingConsoleEditor::keyPressEvent(QKeyEvent *event)
     TextEditor::keyPressEvent(event);
 }
 
+void ScriptingConsoleEditor::mousePressEvent(QMouseEvent *event)
+{
+    TextEditor::mousePressEvent(event);
+}
+
+void ScriptingConsoleEditor::mouseReleaseEvent(QMouseEvent *event)
+{
+    TextEditor::mouseReleaseEvent(event);
+
+    if (event->button() == Qt::LeftButton && selectedText().length() == 0)
+        setCursorPosition(_p->line() + 1, _p->index());
+}
+
 void ScriptingConsoleEditor::onKeyPressEnter()
 {
     // Skip return if cursor is not in the prompt line
@@ -193,10 +231,14 @@ void ScriptingConsoleEditor::onKeyPressDown()
     replaceSelectedText(history);
 }
 
-void ScriptingConsoleEditor::onCursorPositionChanged(int line, int/* index*/)
+void ScriptingConsoleEditor::onCursorPositionChanged(int line, int index)
 {
+    _p->setLine(line);
+    _p->setIndex(index);
+
     // Set read-only flag when cursor is not in the prompt line
     setReadOnly(line != lines() - 1);
+    setCaretWidth(line != lines() - 1 ? 0 : 1);
 }
 
 } // namespace editors;

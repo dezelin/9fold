@@ -57,6 +57,8 @@ protected slots:
 
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void mouseReleaseEvent(QMouseEvent *event);
 
 private:
     class ScriptingConsoleEditorPrivate;
