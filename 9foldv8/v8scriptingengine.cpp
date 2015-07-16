@@ -73,24 +73,20 @@ public:
         TryCatch trycatch;
 
         // Compile the source code.
-        QString result;
         Local<Script> _script = Script::Compile(source);
-        if (!_script.IsEmpty()) {
-            // Run the script to get the result.
-            Local<Value> _value = _script->Run();
-            if (!_value.IsEmpty())
-                result = QString::fromLatin1(*String::Utf8Value(_value));
-            else {
-                String::Utf8Value exception(trycatch.Exception());
-                result = QString(*exception);
-            }
-        }
-        else {
+        if (_script.IsEmpty()) {
             String::Utf8Value exception(trycatch.Exception());
-            result = QString(*exception);
+            return QString(*exception);
         }
 
-        return result;
+        // Run the script to get the result.
+        Local<Value> _value = _script->Run();
+        if (_value.IsEmpty()) {
+            String::Utf8Value exception(trycatch.Exception());
+            return QString(*exception);
+        }
+
+        return QString::fromLatin1(*String::Utf8Value(_value));
     }
 
     QString version() const
