@@ -40,7 +40,8 @@ public:
     void addHistory(const QString& text)
     {
         _history.append(text);
-        QVector<QString>::const_iterator it = std::unique(_history.begin(), _history.end());
+        QVector<QString>::const_iterator it = std::unique(_history.begin(),
+            _history.end());
         _history.resize(it - _history.begin());
         resetHistoryIndex();
     }
@@ -90,7 +91,8 @@ ScriptingConsoleEditor::ScriptingConsoleEditor(QWidget *parent)
     connect(this, SIGNAL(keyPressEnter()), this, SLOT(onKeyPressEnter()));
     connect(this, SIGNAL(keyPressUp()), this, SLOT(onKeyPressUp()));
     connect(this, SIGNAL(keyPressDown()), this, SLOT(onKeyPressDown()));
-    connect(this, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(onCursorPositionChanged(int,int)));
+    connect(this, SIGNAL(cursorPositionChanged(int,int)), this,
+        SLOT(onCursorPositionChanged(int,int)));
 }
 
 ScriptingConsoleEditor::~ScriptingConsoleEditor()
@@ -194,7 +196,7 @@ void ScriptingConsoleEditor::onKeyPressDown()
 void ScriptingConsoleEditor::onCursorPositionChanged(int line, int/* index*/)
 {
     // Set read-only flag when cursor is not in the prompt line
-    setReadOnly(line != lines()- 1);
+    setReadOnly(line != lines() - 1);
 }
 
 } // namespace editors;
