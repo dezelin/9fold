@@ -30,7 +30,7 @@ namespace editors
 JavaScriptTextEditor::JavaScriptTextEditor(QWidget *parent)
     : TextEditor(parent)
 {
-    setLexer(new QsciLexerJavaScript());
+    setLexer(new QsciLexerJavaScript(this));
     setWrapMode(QsciScintilla::WrapCharacter);
 }
 
