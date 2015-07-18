@@ -19,6 +19,7 @@
 #include "_9foldjavascriptdocumentview.h"
 
 #include <javascripttexteditor.h>
+#include <v8scriptingengine.h>
 
 #include <QVBoxLayout>
 
@@ -33,7 +34,7 @@ _9FoldJavaScriptDocumentView::_9FoldJavaScriptDocumentView(QWidget *parent)
     : _9FoldDocumentView(parent)
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(new JavaScriptTextEditor());
+    layout->addWidget(new JavaScriptTextEditor(new V8ScriptingEngine(this), this));
     layout->setContentsMargins(0, 0, 0, 0);
 }
 

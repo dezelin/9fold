@@ -21,6 +21,9 @@
 
 #include "texteditor.h"
 
+#include <v8scriptingengine.h>
+
+#include <QScopedPointer>
 #include <QWidget>
 
 namespace _9fold
@@ -30,11 +33,19 @@ namespace widgets
 namespace editors
 {
 
+using namespace _9fold::scripting::engine;
+
 class JavaScriptTextEditor : public TextEditor
 {
 public:
-    JavaScriptTextEditor(QWidget *parent = 0);
+    JavaScriptTextEditor(V8ScriptingEngine *engine, QWidget *parent = 0);
     virtual ~JavaScriptTextEditor();
+
+    V8ScriptingEngine* engine() const;
+
+private:
+    class JavaScriptTextEditorPrivate;
+    QScopedPointer<JavaScriptTextEditorPrivate> _p;
 };
 
 } // namespace editors

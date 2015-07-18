@@ -27,8 +27,26 @@ namespace widgets
 namespace editors
 {
 
-JavaScriptTextEditor::JavaScriptTextEditor(QWidget *parent)
-    : TextEditor(parent)
+class JavaScriptTextEditor::JavaScriptTextEditorPrivate
+{
+public:
+    JavaScriptTextEditorPrivate(V8ScriptingEngine *engine)
+        : _engine(engine)
+    {
+
+    }
+
+    V8ScriptingEngine* engine() const
+    {
+        return _engine;
+    }
+
+private:
+    V8ScriptingEngine *_engine;
+};
+
+JavaScriptTextEditor::JavaScriptTextEditor(V8ScriptingEngine *engine, QWidget *parent)
+    : TextEditor(parent), _p(new JavaScriptTextEditorPrivate(engine))
 {
     setLexer(new QsciLexerJavaScript(this));
     setWrapMode(QsciScintilla::WrapCharacter);
@@ -37,6 +55,11 @@ JavaScriptTextEditor::JavaScriptTextEditor(QWidget *parent)
 JavaScriptTextEditor::~JavaScriptTextEditor()
 {
 
+}
+
+V8ScriptingEngine *JavaScriptTextEditor::engine() const
+{
+    return _p->engine();
 }
 
 } // namespace editors

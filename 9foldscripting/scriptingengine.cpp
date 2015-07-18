@@ -38,4 +38,3 @@ ScriptingEngine::~ScriptingEngine()
 } // namespace engine
 } // namespace scripting
 } // namespace _9fold
-
