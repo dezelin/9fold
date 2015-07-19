@@ -30,17 +30,60 @@ namespace views
 
 using namespace _9fold::widgets::editors;
 
-_9FoldJavaScriptDocumentView::_9FoldJavaScriptDocumentView(QWidget *parent)
-    : _9FoldDocumentView(parent)
+class _9FoldJavaScriptDocumentView::_9FoldJavaScriptDocumentViewPrivate
 {
+public:
+    _9FoldJavaScriptDocumentViewPrivate(JavaScriptTextEditor *editor = 0)
+        : _editor(editor)
+    {
+
+    }
+
+    JavaScriptTextEditor* editor() const
+    {
+        return _editor;
+    }
+
+    void setEditor(JavaScriptTextEditor* editor)
+    {
+        _editor = editor;
+    }
+
+private:
+    JavaScriptTextEditor *_editor;
+};
+
+_9FoldJavaScriptDocumentView::_9FoldJavaScriptDocumentView(QWidget *parent)
+    : _9FoldDocumentView(parent), _p(new _9FoldJavaScriptDocumentViewPrivate())
+{
+    QScopedPointer<JavaScriptTextEditor> editor(new JavaScriptTextEditor(
+        new V8ScriptingEngine(this), this));
+    _p->setEditor(editor.data());
+
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(new JavaScriptTextEditor(new V8ScriptingEngine(this), this));
+    layout->addWidget(editor.take());
     layout->setContentsMargins(0, 0, 0, 0);
+
 }
 
 _9FoldJavaScriptDocumentView::~_9FoldJavaScriptDocumentView()
 {
 
+}
+
+JavaScriptTextEditor *_9FoldJavaScriptDocumentView::editor() const
+{
+    return _p->editor();
+}
+
+int _9FoldJavaScriptDocumentView::debug()
+{
+    return editor()->debug();
+}
+
+int _9FoldJavaScriptDocumentView::run()
+{
+    return editor()->run();
 }
 
 } // namespace views

@@ -22,6 +22,8 @@
 #include "_9foldcommandmanager.h"
 #include "_9folddockmanager.h"
 #include "_9folddocumentmanager.h"
+#include "_9folddocumentpresenter.h"
+#include "_9foldjavascriptdocumentview.h"
 #include "_9foldmenumanager.h"
 #include "_9foldtoolbarmanager.h"
 
@@ -34,6 +36,7 @@ namespace _9fold
 namespace workspaces
 {
 
+using namespace _9fold::documents;
 using namespace _9fold::widgets::scripting;
 
 _9FoldWorkspace::_9FoldWorkspace(QMainWindow *mainWindow,
@@ -51,6 +54,23 @@ _9FoldWorkspace::_9FoldWorkspace(QMainWindow *mainWindow,
 _9FoldWorkspace::~_9FoldWorkspace()
 {
 
+}
+
+_9FoldDocument *_9FoldWorkspace::currentDocument() const
+{
+    _9FoldDocumentView *currentView = qobject_cast<_9FoldDocumentView*>(
+        centralWidget()->currentWidget());
+    Q_ASSERT(currentView);
+    if (!currentView)
+        return 0;
+
+    _9FoldDocumentPresenter *presenter = qobject_cast<_9FoldDocumentPresenter*>(
+        currentView->presenter());
+    Q_ASSERT(presenter);
+    if (!presenter)
+        return 0;
+
+    return qobject_cast<_9FoldDocument*>(presenter->document());
 }
 
 _9FoldDocumentManager* _9FoldWorkspace::_documentManager() const
@@ -77,6 +97,26 @@ void _9FoldWorkspace::addNewJavaScriptDocument()
     centralWidget()->addTab(view, document->name() + "*");
 
     _documentManager()->addDocument(document.take());
+}
+
+void _9FoldWorkspace::javaScriptDebug()
+{
+    _9FoldJavaScriptDocumentView *currentView = qobject_cast<_9FoldJavaScriptDocumentView*>(
+        centralWidget()->currentWidget());
+    if (!currentView)
+        return;
+
+    currentView->debug();
+}
+
+void _9FoldWorkspace::javaScriptRun()
+{
+    _9FoldJavaScriptDocumentView *currentView = qobject_cast<_9FoldJavaScriptDocumentView*>(
+        centralWidget()->currentWidget());
+    if (!currentView)
+        return;
+
+    currentView->run();
 }
 
 void _9FoldWorkspace::viewJavaScriptConsole()

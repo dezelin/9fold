@@ -41,6 +41,7 @@ _9FoldMenuManager::~_9FoldMenuManager()
 void _9FoldMenuManager::addDefaultMenus()
 {
     addMenu(createFileMenu());
+    addMenu(createScriptMenu());
     addMenu(createViewMenu());
 }
 
@@ -48,6 +49,14 @@ QMenu* _9FoldMenuManager::createFileMenu()
 {
     QMenu *menu = new QMenu(tr("&File"), mainWindow());
     menu->insertAction(0, _actionManager()->createNew());
+    return menu;
+}
+
+QMenu* _9FoldMenuManager::createScriptMenu()
+{
+    QMenu *menu = new QMenu(tr("&Script"), mainWindow());
+    menu->insertAction(0, _actionManager()->createScriptRun());
+    menu->insertAction(0, _actionManager()->createScriptDebug());
     return menu;
 }
 

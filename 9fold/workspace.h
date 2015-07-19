@@ -50,6 +50,7 @@ namespace docks
 
 namespace documents
 {
+    class Document;
     class DocumentManager;
 }
 

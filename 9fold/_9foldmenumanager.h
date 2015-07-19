@@ -43,6 +43,7 @@ public:
 
 protected:
     QMenu* createFileMenu();
+    QMenu* createScriptMenu();
     QMenu* createViewMenu();
 
 protected:

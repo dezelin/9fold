@@ -45,6 +45,7 @@ namespace docks
 
 namespace documents
 {
+    class _9FoldDocument;
     class _9FoldDocumentManager;
 }
 
@@ -79,7 +80,11 @@ public:
 
     virtual ~_9FoldWorkspace();
 
+    _9FoldDocument* currentDocument() const;
+
     void addNewJavaScriptDocument();
+    void javaScriptDebug();
+    void javaScriptRun();
     void viewJavaScriptConsole();
 
 protected:

@@ -11,7 +11,7 @@ QT       -= gui
 TARGET = 9foldfformats
 TEMPLATE = lib
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++11 -Wall
 
 DEFINES += _9FOLDFFORMATS_LIBRARY
 

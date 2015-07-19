@@ -21,13 +21,18 @@
 
 #include "_9folddocumentview.h"
 
+#include <javascripttexteditor.h>
+
 #include <QObject>
+#include <QScopedPointer>
 #include <QWidget>
 
 namespace _9fold
 {
 namespace views
 {
+
+using namespace _9fold::widgets::editors;
 
 class _9FoldJavaScriptDocumentView : public _9FoldDocumentView
 {
@@ -36,9 +41,18 @@ public:
     explicit _9FoldJavaScriptDocumentView(QWidget *parent = 0);
     virtual ~_9FoldJavaScriptDocumentView();
 
+    JavaScriptTextEditor* editor() const;
+
+    int debug();
+    int run();
+
 signals:
 
 public slots:
+
+private:
+    class _9FoldJavaScriptDocumentViewPrivate;
+    QScopedPointer<_9FoldJavaScriptDocumentViewPrivate> _p;
 };
 
 } // namespace views

@@ -14,11 +14,13 @@ QMAKE_CXXFLAGS += -std=c++11
 DEFINES += _9FOLDV8_LIBRARY
 
 SOURCES += _9foldv8.cpp \
-    v8scriptingengine.cpp
+    v8scriptingengine.cpp \
+    v8scriptingengineworker.cpp
 
 HEADERS += _9foldv8.h\
         9foldv8_global.h \
-    v8scriptingengine.h
+    v8scriptingengine.h \
+    v8scriptingengineworker.h
 
 unix {
     target.path = /usr/lib

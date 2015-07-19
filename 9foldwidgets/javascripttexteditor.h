@@ -37,11 +37,26 @@ using namespace _9fold::scripting::engine;
 
 class JavaScriptTextEditor : public TextEditor
 {
+    Q_OBJECT
 public:
     JavaScriptTextEditor(V8ScriptingEngine *engine, QWidget *parent = 0);
     virtual ~JavaScriptTextEditor();
 
     V8ScriptingEngine* engine() const;
+
+    int debug();
+    int run();
+
+    int addBreakpoint(int line);
+    int clearBreakpoint(int line);
+
+signals:
+
+private slots:
+    void onError(const V8ScriptingEngine::V8Error& error);
+    void onFinished(const QString& result);
+    void onLinesChanged();
+    void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
     class JavaScriptTextEditorPrivate;

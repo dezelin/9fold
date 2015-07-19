@@ -44,9 +44,20 @@ public:
     // Scripting engine interface
     //
 
+    class Error : public QJsonObject
+    {
+    public:
+        virtual ~Error() {}
+    };
+
+    virtual const Error& error() const = 0;
+
     virtual QString version() const = 0;
 
     virtual QString run(const QString& script) = 0;
+
+    virtual void debugAsync() = 0;
+    virtual void runAsync(const QString& script) = 0;
 
     //
     // Debugger interface
@@ -108,25 +119,26 @@ public:
 
     virtual int breakZ() = 0;
     virtual int continueZ(ContinueType type) = 0;
-    virtual int evaluate(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int lookup(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int getBacktrace(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int getFrame(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int getScope(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int getScopes(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int getScripts(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int getSource(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int setBreakpoint(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int changeBreakpoint(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int clearBreakpoint(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int setExceptionBreak(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int getFlags(const CommandRequest& request, CommandResponse& response) = 0;
+    virtual int evaluate(const CommandRequest& request) = 0;
+    virtual int lookup(const CommandRequest& request) = 0;
+    virtual int getBacktrace(const CommandRequest& request) = 0;
+    virtual int getFrame(const CommandRequest& request) = 0;
+    virtual int getScope(const CommandRequest& request) = 0;
+    virtual int getScopes(const CommandRequest& request) = 0;
+    virtual int getScripts(const CommandRequest& request) = 0;
+    virtual int getSource(const CommandRequest& request) = 0;
+    virtual int setBreakpoint(const CommandRequest& request) = 0;
+    virtual int changeBreakpoint(const CommandRequest& request) = 0;
+    virtual int clearBreakpoint(const CommandRequest& request) = 0;
+    virtual int setExceptionBreak(const CommandRequest& request) = 0;
+    virtual int getFlags(const CommandRequest& request) = 0;
     virtual int getVersion(CommandResponse& response) = 0;
-    virtual int gc(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int getListOfBreakpoints(const CommandRequest& request, CommandResponse& response) = 0;
-    virtual int setVariableValue(const CommandRequest& request, CommandResponse& response) = 0;
+    virtual int gc(const CommandRequest& request) = 0;
+    virtual int getListOfBreakpoints(const CommandRequest& request) = 0;
+    virtual int setVariableValue(const CommandRequest& request) = 0;
 
 signals:
+    void response(const CommandResponse& response);
 
 public slots:
 };

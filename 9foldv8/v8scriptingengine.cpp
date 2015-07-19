@@ -17,11 +17,17 @@
 //
 
 #include "v8scriptingengine.h"
+#include "v8scriptingengineworker.h"
 
 #include <v8.h>
 #include <v8-debug.h>
 
+#include <QDebug>
+#include <QJsonDocument>
+#include <QObject>
 #include <QScopedPointer>
+#include <QThread>
+#include <QVector>
 
 
 namespace _9fold
@@ -33,229 +39,219 @@ namespace engine
 
 using namespace v8;
 
-static void EventCallback2(const Debug::EventDetails& event_details);
-static void MessageCallback2(const Debug::Message& message);
-
-
-class V8ScriptingEngineImpl
+class V8ScriptingEnginePrivate
 {
 public:
-    class DebuggerClientData : public Debug::ClientData
-    {
-    public:
-        DebuggerClientData(V8ScriptingEngineImpl *engineImpl)
-            : Debug::ClientData(), _engineImpl(engineImpl)
-        {
-
-        }
-
-        V8ScriptingEngineImpl* engine() const
-        {
-            return _engineImpl;
-        }
-
-    private:
-        V8ScriptingEngineImpl *_engineImpl;
-    };
-
-    V8ScriptingEngineImpl()
-    {
-        V8::Initialize();
-        _isolate = Isolate::New();
-    }
-
-    ~V8ScriptingEngineImpl()
-    {
-        _isolate->Dispose();
-    }
-
-    void EncapsulateGlobal(Local<ObjectTemplate>& global)
-    {
-
-    }
-
-    QString run(const QString& script)
-    {
-        Isolate::Scope scope(_isolate);
-
-        // Create a stack-allocated handle scope.
-        HandleScope handleScope;
-
-        // Set debug event callback handler
-        Debug::SetDebugEventListener2(EventCallback2);
-
-        // Set debug message callback handler
-        Debug::SetMessageHandler2(MessageCallback2);
-
-        // Create global object
-        Local<ObjectTemplate> global = ObjectTemplate::New();
-        EncapsulateGlobal(global);
-
-        // Create a new context.
-        if (_context.IsEmpty())
-            _context = Context::New(0, global);
-
-        // Enter the context for compiling and running the script.
-        Context::Scope contextScope(_context);
-
-        // Create a string containing the JavaScript source code.
-        Local<String> source = String::New(script.toLatin1().data());
-
-        // Catch compilation and evaluation errors
-        TryCatch trycatch;
-
-        // Compile the source code.
-        Local<v8::Script> _script = v8::Script::Compile(source);
-        if (_script.IsEmpty()) {
-            String::Utf8Value exception(trycatch.Exception());
-            return QString(*exception);
-        }
-
-        // Run the script to get the result.
-        Local<Value> _value = _script->Run();
-        if (_value.IsEmpty()) {
-            String::Utf8Value exception(trycatch.Exception());
-            return QString(*exception);
-        }
-
-        return QString::fromLatin1(*String::Utf8Value(_value));
-    }
-
-    QString version() const
-    {
-        return QString(V8::GetVersion());
-    }
-
+    typedef V8ScriptingEngine::V8Error V8Error;
     typedef V8ScriptingEngine::ContinueType ContinueType;
     typedef V8ScriptingEngine::CommandRequest CommandRequest;
     typedef V8ScriptingEngine::CommandResponse CommandResponse;
 
+    V8ScriptingEnginePrivate(V8ScriptingEngine *parent)
+        : q_ptr(parent), _worker(new V8ScriptingEngineWorker(parent))
+    {
+        qRegisterMetaType<V8ScriptingEngine::V8Error>("V8ScriptingEngine::V8Error");
+    }
+
+    ~V8ScriptingEnginePrivate()
+    {
+    }
+
+    V8ScriptingEngineWorker* worker() const
+    {
+        return _worker;
+    }
+
     int breakZ()
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->breakZ();
     }
 
     int continueZ(ContinueType type)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->continueZ(type);
     }
 
-    int evaluate(const CommandRequest& request, CommandResponse& response)
+    int evaluate(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->evaluate(request);
     }
 
-    int lookup(const CommandRequest& request, CommandResponse& response)
+    int lookup(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->lookup(request);
     }
 
-    int getBacktrace(const CommandRequest& request, CommandResponse& response)
+    int getBacktrace(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getBacktrace(request);
     }
 
-    int getFrame(const CommandRequest& request, CommandResponse& response)
+    int getFrame(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getFrame(request);
     }
 
-    int getScope(const CommandRequest& request, CommandResponse& response)
+    int getScope(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getScope(request);
     }
 
-    int getScopes(const CommandRequest& request, CommandResponse& response)
+    int getScopes(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getScopes(request);
     }
 
-    int getScripts(const CommandRequest& request, CommandResponse& response)
+    int getScripts(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getScripts(request);
     }
 
-    int getSource(const CommandRequest& request, CommandResponse& response)
+    int getSource(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getSource(request);
     }
 
-    int setBreakpoint(const CommandRequest& request, CommandResponse& response)
+    int setBreakpoint(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->setBreakpoint(request);
     }
 
-    int changeBreakpoint(const CommandRequest& request, CommandResponse& response)
+    int changeBreakpoint(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->changeBreakpoint(request);
     }
 
-    int clearBreakpoint(const CommandRequest& request, CommandResponse& response)
+    int clearBreakpoint(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->clearBreakpoint(request);
     }
 
-    int setExceptionBreak(const CommandRequest& request, CommandResponse& response)
+    int setExceptionBreak(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->setExceptionBreak(request);
     }
 
-    int getFlags(const CommandRequest& request, CommandResponse& response)
+    int getFlags(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getFlags(request);
     }
 
     int getVersion(CommandResponse& response)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getVersion(response);
     }
 
-    int gc(const CommandRequest& request, CommandResponse& response)
+    int gc(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->gc(request);
     }
 
-    int getListOfBreakpoints(const CommandRequest& request, CommandResponse& response)
+    int getListOfBreakpoints(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->getListOfBreakpoints(request);
     }
 
-    int setVariableValue(const CommandRequest& request, CommandResponse& response)
+    int setVariableValue(const CommandRequest& request)
     {
-        return 0;
+        Q_ASSERT(_worker);
+        return _worker->setVariableValue(request);
     }
 
-    void eventCallback2(const Debug::EventDetails& event_details)
+    int initializeDebugging()
     {
+        Q_ASSERT(_worker);
+        return _worker->initializeDebugging();
     }
 
-    void messageCallback2(const Debug::Message& message)
+    const V8Error& error() const
     {
+        Q_ASSERT(_worker);
+        return _worker->error();
+    }
+
+    QString run(const QString& script)
+    {
+        Q_ASSERT(_worker);
+        return _worker->run(script);
+    }
+
+    void debugAsync()
+    {
+        Q_ASSERT(_worker);
+    }
+
+    void runAsync(const QString &script)
+    {
+        Q_Q(V8ScriptingEngine);
+        Q_ASSERT(_worker);
+        QScopedPointer<QThread> thread(new QThread());
+        QScopedPointer<V8ScriptingEngineWorker> worker(new V8ScriptingEngineWorker(script));
+        worker->moveToThread(thread.data());
+        q->connect(worker.data(), SIGNAL(errorOccurred(V8ScriptingEngine::V8Error)), q,
+            SLOT(onError(V8ScriptingEngine::V8Error)));
+        q->connect(thread.data(), SIGNAL(started()), worker.data(), SLOT(execute()));
+        q->connect(worker.data(), SIGNAL(finished(QString)), thread.data(), SLOT(quit()));
+        q->connect(worker.data(), SIGNAL(finished(QString)), worker.data(), SLOT(deleteLater()));
+        q->connect(thread.data(), SIGNAL(finished()), thread.data(), SLOT(deleteLater()));
+
+        thread->start();
+
+        thread.take();
+        worker.take();
+    }
+
+    QString version() const
+    {
+        Q_ASSERT(_worker);
+        return _worker->version();
     }
 
 private:
-    Isolate *_isolate;
-    Persistent<Context> _context;
-};
+    V8ScriptingEngine* const q_ptr;
+    Q_DECLARE_PUBLIC(V8ScriptingEngine)
 
-class V8ScriptingEngine::V8ScriptingEnginePrivate : public V8ScriptingEngineImpl
-{
-public:
-    V8ScriptingEnginePrivate() : V8ScriptingEngineImpl()
-    {
-
-    }
+private:
+    V8ScriptingEngineWorker *_worker;
 };
 
 V8ScriptingEngine::V8ScriptingEngine(QObject *parent)
-    : ScriptingEngine(parent), _p(new V8ScriptingEnginePrivate())
+    : ScriptingEngine(parent), d_ptr(new V8ScriptingEnginePrivate(this))
 {
-
+    Q_D(V8ScriptingEngine);
+    connect(d->worker(), SIGNAL(finished(QString)), this, SLOT(onFinished(QString)));
+    connect(d->worker(), SIGNAL(errorOccurred(V8ScriptingEngine::V8Error)), this,
+        SLOT(onError(V8ScriptingEngine::V8Error)));
 }
 
 V8ScriptingEngine::~V8ScriptingEngine()
 {
+    Q_D(V8ScriptingEngine);
+    delete d;
+}
 
+const ScriptingEngine::Error &V8ScriptingEngine::error() const
+{
+    Q_D(const V8ScriptingEngine);
+    return d->error();
 }
 
 //
@@ -265,12 +261,26 @@ V8ScriptingEngine::~V8ScriptingEngine()
 
 QString V8ScriptingEngine::version() const
 {
-    return _p->version();
+    Q_D(const V8ScriptingEngine);
+    return d->version();
 }
 
 QString V8ScriptingEngine::run(const QString& script)
 {
-    return _p->run(script);
+    Q_D(V8ScriptingEngine);
+    return d->run(script);
+}
+
+void V8ScriptingEngine::debugAsync()
+{
+    Q_D(V8ScriptingEngine);
+    d->debugAsync();
+}
+
+void V8ScriptingEngine::runAsync(const QString &script)
+{
+    Q_D(V8ScriptingEngine);
+    d->runAsync(script);
 }
 
 //
@@ -279,121 +289,224 @@ QString V8ScriptingEngine::run(const QString& script)
 
 int V8ScriptingEngine::breakZ()
 {
-    return _p->breakZ();
+    Q_D(V8ScriptingEngine);
+    return d->breakZ();
 }
 
 int V8ScriptingEngine::continueZ(ContinueType type)
 {
-    return _p->continueZ(type);
+    Q_D(V8ScriptingEngine);
+    return d->continueZ(type);
 }
 
-int V8ScriptingEngine::evaluate(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::evaluate(const CommandRequest& request)
 {
-    return _p->evaluate(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->evaluate(request);
 }
 
-int V8ScriptingEngine::lookup(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::lookup(const CommandRequest& request)
 {
-    return _p->lookup(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->lookup(request);
 }
 
-int V8ScriptingEngine::getBacktrace(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::getBacktrace(const CommandRequest& request)
 {
-    return _p->getBacktrace(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->getBacktrace(request);
 }
 
-int V8ScriptingEngine::getFrame(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::getFrame(const CommandRequest& request)
 {
-    return _p->getFrame(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->getFrame(request);
 }
 
-int V8ScriptingEngine::getScope(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::getScope(const CommandRequest& request)
 {
-    return _p->getScope(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->getScope(request);
 }
 
-int V8ScriptingEngine::getScopes(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::getScopes(const CommandRequest& request)
 {
-    return _p->getScopes(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->getScopes(request);
 }
 
-int V8ScriptingEngine::getScripts(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::getScripts(const CommandRequest& request)
 {
-    return _p->getScripts(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->getScripts(request);
 }
 
-int V8ScriptingEngine::getSource(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::getSource(const CommandRequest& request)
 {
-    return _p->getSource(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->getSource(request);
 }
 
-int V8ScriptingEngine::setBreakpoint(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::setBreakpoint(const CommandRequest& request)
 {
-    return _p->setBreakpoint(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->setBreakpoint(request);
 }
 
-int V8ScriptingEngine::changeBreakpoint(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::changeBreakpoint(const CommandRequest& request)
 {
-    return _p->changeBreakpoint(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->changeBreakpoint(request);
 }
 
-int V8ScriptingEngine::clearBreakpoint(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::clearBreakpoint(const CommandRequest& request)
 {
-    return _p->clearBreakpoint(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->clearBreakpoint(request);
 }
 
-int V8ScriptingEngine::setExceptionBreak(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::setExceptionBreak(const CommandRequest& request)
 {
-    return _p->setExceptionBreak(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->setExceptionBreak(request);
 }
 
-int V8ScriptingEngine::getFlags(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::getFlags(const CommandRequest& request)
 {
-    return _p->getFlags(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->getFlags(request);
 }
 
 int V8ScriptingEngine::getVersion(CommandResponse& response)
 {
-    return _p->getVersion(response);
+    Q_D(V8ScriptingEngine);
+    return d->getVersion(response);
 }
 
-int V8ScriptingEngine::gc(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::gc(const CommandRequest& request)
 {
-    return _p->gc(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->gc(request);
 }
 
-int V8ScriptingEngine::getListOfBreakpoints(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::getListOfBreakpoints(const CommandRequest& request)
 {
-    return _p->getListOfBreakpoints(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->getListOfBreakpoints(request);
 }
 
-int V8ScriptingEngine::setVariableValue(const CommandRequest& request, CommandResponse& response)
+int V8ScriptingEngine::setVariableValue(const CommandRequest& request)
 {
-    return _p->setVariableValue(request, response);
+    Q_D(V8ScriptingEngine);
+    return d->setVariableValue(request);
+}
+
+int V8ScriptingEngine::initializeDebugging()
+{
+    Q_D(V8ScriptingEngine);
+    return d->initializeDebugging();
 }
 
 //
-// Static callback functions
+// Private slots
 //
 
-static void EventCallback2(const Debug::EventDetails& event_details)
+void V8ScriptingEngine::onError(const V8ScriptingEngine::V8Error &error)
 {
-    V8ScriptingEngineImpl::DebuggerClientData *clientData =
-            static_cast<V8ScriptingEngineImpl::DebuggerClientData*>(event_details.GetClientData());
-    if (!clientData)
-        return;
-
-    clientData->engine()->eventCallback2(event_details);
+    emit errorOccurred(error);
 }
 
-static void MessageCallback2(const Debug::Message& message)
+void V8ScriptingEngine::onFinished(const QString &result)
 {
-    V8ScriptingEngineImpl::DebuggerClientData *clientData =
-            static_cast<V8ScriptingEngineImpl::DebuggerClientData*>(message.GetClientData());
-    if (!clientData)
-        return;
+    emit finished(result);
+}
 
-    clientData->engine()->messageCallback2(message);
+//
+// Debugger classes
+//
+
+const QString kV8BreakpointLine = "line";
+
+V8ScriptingEngine::V8Breakpoint::V8Breakpoint() : Breakpoint()
+{
+
+}
+
+V8ScriptingEngine::V8Breakpoint::V8Breakpoint(int line)
+    : Breakpoint()
+{
+    insert(kV8BreakpointLine, line);
+}
+
+V8ScriptingEngine::V8Breakpoint::~V8Breakpoint()
+{
+
+}
+
+int V8ScriptingEngine::V8Breakpoint::line() const
+{
+    return value(kV8BreakpointLine).toInt();
+}
+
+QJsonObject V8ScriptingEngine::V8Breakpoint::toArguments()
+{
+    QJsonObject json;
+    json["type"] = "script";
+    json["line"] = value(kV8BreakpointLine);
+    return json;
+}
+
+
+const QString kV8ErrorStart = "start";
+const QString kV8ErrorEnd = "end";
+const QString kV8ErrorLine = "line";
+const QString kV8ErrorMessage = "message";
+
+V8ScriptingEngine::V8Error::V8Error() : Error()
+{
+
+}
+
+V8ScriptingEngine::V8Error::V8Error(int start, int end, int line, const QString &message)
+    : Error()
+{
+    insert(kV8ErrorStart, start);
+    insert(kV8ErrorEnd, end);
+    insert(kV8ErrorLine, line);
+    insert(kV8ErrorMessage, message);
+}
+
+V8ScriptingEngine::V8Error::V8Error(const ScriptingEngine::Error &error)
+{
+    insert(kV8ErrorStart, error.value(kV8ErrorStart));
+    insert(kV8ErrorEnd, error.value(kV8ErrorEnd));
+    insert(kV8ErrorLine, error.value(kV8ErrorLine));
+    insert(kV8ErrorMessage, error.value(kV8ErrorMessage));
+}
+
+V8ScriptingEngine::V8Error::~V8Error()
+{
+
+}
+
+int V8ScriptingEngine::V8Error::start() const
+{
+    return value(kV8ErrorStart).toInt();
+}
+
+int V8ScriptingEngine::V8Error::end() const
+{
+    return value(kV8ErrorEnd).toInt();
+}
+
+int V8ScriptingEngine::V8Error::line() const
+{
+    return value(kV8ErrorLine).toInt();
+}
+
+QString V8ScriptingEngine::V8Error::message() const
+{
+    return value(kV8ErrorMessage).toString();
 }
 
 } // namespace engine

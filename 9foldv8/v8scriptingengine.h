@@ -31,6 +31,7 @@ namespace scripting
 namespace engine
 {
 
+class V8ScriptingEnginePrivate;
 class V8ScriptingEngine : public ScriptingEngine
 {
     Q_OBJECT
@@ -42,9 +43,28 @@ public:
     // Scripting engine interface
     //
 
+    class V8Error : public Error
+    {
+    public:
+        V8Error();
+        V8Error(int start, int end, int line, const QString& message);
+        V8Error(const Error& error);
+        virtual ~V8Error();
+
+        int start() const;
+        int end() const;
+        int line() const;
+        QString message() const;
+    };
+
+    virtual const Error& error() const;
+
     virtual QString version() const;
 
     virtual QString run(const QString& script);
+
+    virtual void debugAsync();
+    virtual void runAsync(const QString& script);
 
     //
     // Debugger interface
@@ -54,7 +74,11 @@ public:
     {
     public:
         V8Breakpoint();
+        V8Breakpoint(int line);
         virtual ~V8Breakpoint();
+
+        int line() const;
+        QJsonObject toArguments();
     };
 
     class V8Frame : public Frame
@@ -94,31 +118,43 @@ public:
 
     virtual int breakZ();
     virtual int continueZ(ContinueType type);
-    virtual int evaluate(const CommandRequest& request, CommandResponse& response);
-    virtual int lookup(const CommandRequest& request, CommandResponse& response);
-    virtual int getBacktrace(const CommandRequest& request, CommandResponse& response);
-    virtual int getFrame(const CommandRequest& request, CommandResponse& response);
-    virtual int getScope(const CommandRequest& request, CommandResponse& response);
-    virtual int getScopes(const CommandRequest& request, CommandResponse& response);
-    virtual int getScripts(const CommandRequest& request, CommandResponse& response);
-    virtual int getSource(const CommandRequest& request, CommandResponse& response);
-    virtual int setBreakpoint(const CommandRequest& request, CommandResponse& response);
-    virtual int changeBreakpoint(const CommandRequest& request, CommandResponse& response);
-    virtual int clearBreakpoint(const CommandRequest& request, CommandResponse& response);
-    virtual int setExceptionBreak(const CommandRequest& request, CommandResponse& response);
-    virtual int getFlags(const CommandRequest& request, CommandResponse& response);
+    virtual int evaluate(const CommandRequest& request);
+    virtual int lookup(const CommandRequest& request);
+    virtual int getBacktrace(const CommandRequest& request);
+    virtual int getFrame(const CommandRequest& request);
+    virtual int getScope(const CommandRequest& request);
+    virtual int getScopes(const CommandRequest& request);
+    virtual int getScripts(const CommandRequest& request);
+    virtual int getSource(const CommandRequest& request);
+    virtual int setBreakpoint(const CommandRequest& request);
+    virtual int changeBreakpoint(const CommandRequest& request);
+    virtual int clearBreakpoint(const CommandRequest& request);
+    virtual int setExceptionBreak(const CommandRequest& request);
+    virtual int getFlags(const CommandRequest& request);
     virtual int getVersion(CommandResponse& response);
-    virtual int gc(const CommandRequest& request, CommandResponse& response);
-    virtual int getListOfBreakpoints(const CommandRequest& request, CommandResponse& response);
-    virtual int setVariableValue(const CommandRequest& request, CommandResponse& response);
+    virtual int gc(const CommandRequest& request);
+    virtual int getListOfBreakpoints(const CommandRequest& request);
+    virtual int setVariableValue(const CommandRequest& request);
+
+    int initializeDebugging();
+
+signals:
+    void errorOccurred(const V8ScriptingEngine::V8Error& error);
+    void finished(const QString& result);
+
+private slots:
+    void onError(const V8ScriptingEngine::V8Error &error);
+    void onFinished(const QString& result);
 
 private:
-    class V8ScriptingEnginePrivate;
-    QScopedPointer<V8ScriptingEnginePrivate> _p;
+    V8ScriptingEnginePrivate* const d_ptr;
+    Q_DECLARE_PRIVATE(V8ScriptingEngine)
 };
 
 } // namespace engine
 } // namespace scripting
 } // namespace _9fold
+
+Q_DECLARE_METATYPE(_9fold::scripting::engine::V8ScriptingEngine::V8Error)
 
 #endif // V8SCRIPTINGENGINE_H

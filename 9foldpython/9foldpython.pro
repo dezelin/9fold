@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = 9foldpython
 TEMPLATE = lib
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++11 -Wall
 
 DEFINES += _9FOLDPYTHON_LIBRARY
 

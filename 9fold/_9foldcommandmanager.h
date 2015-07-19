@@ -44,6 +44,8 @@ public:
     virtual ~_9FoldCommandManager();
 
     GuiCommand* createNewJavaScriptCommand() const;
+    GuiCommand* createScriptDebugCommand() const;
+    GuiCommand* createScriptRunCommand() const;
     GuiCommand* createViewJavaScriptConsoleCommand() const;
 
 private:

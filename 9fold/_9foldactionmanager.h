@@ -49,6 +49,8 @@ public:
     virtual ~_9FoldActionManager();
 
     QAction* createNew();
+    QAction* createScriptDebug();
+    QAction* createScriptRun();
     QAction* createViewV8Console();
 
 private:

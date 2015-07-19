@@ -62,6 +62,50 @@ _9FoldCommandManager::GuiCommand* _9FoldCommandManager::createNewJavaScriptComma
     return new NewJavaScriptCommand(_workspace());
 }
 
+CommandManager::GuiCommand *_9FoldCommandManager::createScriptDebugCommand() const
+{
+    struct JavaScriptDebugCommand : public GuiCommand
+    {
+        JavaScriptDebugCommand(_9FoldWorkspace *workspace) : GuiCommand(), _workspace(workspace)
+        {
+
+        }
+
+        virtual void execute()
+        {
+            Q_ASSERT(_workspace);
+            _workspace->javaScriptDebug();
+        }
+
+    private:
+        _9FoldWorkspace *_workspace;
+    };
+
+    return new JavaScriptDebugCommand(_workspace());
+}
+
+CommandManager::GuiCommand *_9FoldCommandManager::createScriptRunCommand() const
+{
+    struct JavaScriptRunCommand : public GuiCommand
+    {
+        JavaScriptRunCommand(_9FoldWorkspace *workspace) : GuiCommand(), _workspace(workspace)
+        {
+
+        }
+
+        virtual void execute()
+        {
+            Q_ASSERT(_workspace);
+            _workspace->javaScriptRun();
+        }
+
+    private:
+        _9FoldWorkspace *_workspace;
+    };
+
+    return new JavaScriptRunCommand(_workspace());
+}
+
 _9FoldCommandManager::GuiCommand* _9FoldCommandManager::createViewJavaScriptConsoleCommand() const
 {
     struct ViewJavaScriptConsoleCommand : public GuiCommand
