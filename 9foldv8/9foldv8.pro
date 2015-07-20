@@ -34,4 +34,5 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldscripting/ -l9foldscripting
 INCLUDEPATH += $$PWD/../9foldscripting
 DEPENDPATH += $$PWD/../9foldscripting
 
-LIBS += -lv8
+INCLUDEPATH += /home/dezelin/Workspace/v8
+LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -lv8

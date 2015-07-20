@@ -141,7 +141,7 @@ V8ScriptingEngine *JavaScriptTextEditor::engine() const
 int JavaScriptTextEditor::debug()
 {
     engine()->debugAsync(text());
-    return run();
+    return 0;
 }
 
 int JavaScriptTextEditor::run()
@@ -175,7 +175,9 @@ void JavaScriptTextEditor::onBreakForCommand()
     if (d->breakpointsSet())
         return;
 
-    debugInsertBreakpoints();
+    //debugInsertBreakpoints();
+    V8ScriptingEngine::CommandResponse r;
+    engine()->getVersion(r);
     d->setBreakpointsSet(true);
 }
 

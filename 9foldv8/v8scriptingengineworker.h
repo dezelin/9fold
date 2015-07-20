@@ -23,8 +23,9 @@
 
 #include <QObject>
 
-#include <v8.h>
-#include <v8-debug.h>
+#include <include/v8.h>
+#include <include/v8-debug.h>
+#include <include/libplatform/libplatform.h>
 
 namespace _9fold
 {
@@ -83,8 +84,10 @@ signals:
     void newFunctionOccurred();
     void beforeCompileOccurred();
     void afterCompileOccurred();
-    void scriptCollectedOccurred();
-    void breakForCommandOccurred();
+    void compileErrorOccurred();
+    void promiseEventOccurred();
+    void asyncTaskEventOccurred();
+
     void errorOccurred(const V8ScriptingEngine::V8Error& error);
     void finished(const QString& result);
 

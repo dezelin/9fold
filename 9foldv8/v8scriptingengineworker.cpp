@@ -18,9 +18,11 @@
 
 #include "v8scriptingengineworker.h"
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QThread>
 
 namespace _9fold
 {
@@ -30,6 +32,30 @@ namespace engine
 {
 
 using namespace v8;
+
+//
+// V8 allocator
+//
+
+class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator
+{
+public:
+    virtual void* Allocate(size_t length)
+    {
+        void* data = AllocateUninitialized(length);
+        return data == NULL ? data : memset(data, 0, length);
+    }
+
+    virtual void* AllocateUninitialized(size_t length)
+    {
+        return malloc(length);
+    }
+
+    virtual void Free(void* data, size_t)
+    {
+        free(data);
+    }
+};
 
 //
 // Debugger client class
@@ -49,7 +75,6 @@ public:
 private:
     V8ScriptingEngineWorkerPrivate *_priv;
 };
-
 
 //
 // Forward declarations of callbacks
@@ -74,17 +99,30 @@ public:
     V8ScriptingEngineWorkerPrivate(const QString &scriptAsync,
         V8ScriptingEngineWorker *parent)
         : q_ptr(parent)
-        , _seq(0)
+        , _seq(1)
         , _debug(false)
         , _scriptAsync(scriptAsync)
     {
+        V8::InitializeICU();
+        _platform = platform::CreateDefaultPlatform();
+        V8::InitializePlatform(_platform);
         V8::Initialize();
-        _isolate = Isolate::New();
+
+        QString flags("--harmony --debugger --expose_debug_as=v8debug");
+        V8::SetFlagsFromString(flags.toUtf8().data(), flags.length());
+
+        Isolate::CreateParams createParams;
+        createParams.array_buffer_allocator = &_allocator;
+        _isolate = Isolate::New(createParams);
+        _isolate->Enter();
     }
 
     ~V8ScriptingEngineWorkerPrivate()
     {
+        _isolate->Exit();
         _isolate->Dispose();
+        V8::Dispose();
+        V8::ShutdownPlatform();
     }
 
     void EncapsulateGlobal(Local<ObjectTemplate>& /*global*/)
@@ -137,12 +175,16 @@ public:
             emit q->afterCompileOccurred();
             break;
         }
-        case ScriptCollected: {
-            emit q->scriptCollectedOccurred();
+        case CompileError: {
+            emit q->compileErrorOccurred();
             break;
         }
-        case BreakForCommand: {
-            emit q->breakForCommandOccurred();
+        case PromiseEvent: {
+            emit q->promiseEventOccurred();
+            break;
+        }
+        case AsyncTaskEvent: {
+            emit q->asyncTaskEventOccurred();
             break;
         }
         default: {
@@ -177,12 +219,16 @@ public:
                 emit q->afterCompileOccurred();
                 break;
             }
-            case ScriptCollected: {
-                emit q->scriptCollectedOccurred();
+            case CompileError: {
+                emit q->compileErrorOccurred();
                 break;
             }
-            case BreakForCommand: {
-                emit q->breakForCommandOccurred();
+            case PromiseEvent: {
+                emit q->promiseEventOccurred();
+                break;
+            }
+            case AsyncTaskEvent: {
+                emit q->asyncTaskEventOccurred();
                 break;
             }
             default: {
@@ -206,13 +252,13 @@ public:
         Isolate::Scope scope(_isolate);
 
         // Create a stack-allocated handle scope.
-        HandleScope handleScope;
+        HandleScope handleScope(_isolate);
 
         // Set debug event callback handler
-        Debug::SetDebugEventListener2(EventCallback2);
+        Debug::SetDebugEventListener(EventCallback2);
 
         // Set debug message callback handler
-        Debug::SetMessageHandler2(MessageCallback2);
+        Debug::SetMessageHandler(MessageCallback2);
 
         // Create global object
         Local<ObjectTemplate> global = ObjectTemplate::New();
@@ -220,7 +266,7 @@ public:
 
         // Create a new context.
         if (_context.IsEmpty()) {
-            Local<External> _this(External::New(this));
+            Local<External> _this(External::New(_isolate, this));
             _context = Context::New(0, global);
             _context->SetData(_this);
         }
@@ -229,7 +275,7 @@ public:
         Context::Scope contextScope(_context);
 
         // Create a string containing the JavaScript source code.
-        Local<String> source = String::New(script.toLatin1().data());
+        Local<String> source = String::New(script.toUtf8().data());
 
         // Catch compilation and evaluation errors
         TryCatch trycatch;
@@ -248,7 +294,7 @@ public:
         }
 
         if (_debug)
-            Debug::DebugBreakForCommand(0, _isolate);
+            Debug::DebugBreak(_isolate);
 
         // Run the script to get the result.
         Local<Value> _value = _script->Run();
@@ -260,9 +306,15 @@ public:
             emit q->finished(result);
             return result;
         }
+        while(_debug) {
+            Debug::ProcessDebugMessages();
+            QCoreApplication::processEvents();
+            q->thread()->usleep(100);
+        }
 
         result = QString::fromLatin1(*String::Utf8Value(_value));
         emit q->finished(result);
+
         return result;
     }
 
@@ -271,9 +323,27 @@ public:
         return 0;
     }
 
-    int continueZ(ContinueType /*type*/)
+    int continueZ(ContinueType type)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "continue";
+        QJsonObject cmdArguments;
+        cmdArguments["stepcount"] = 1;
+
+        if (type == V8ScriptingEngine::ContinueType::In)
+            cmdArguments["stepaction"] = "in";
+        else if (type == V8ScriptingEngine::ContinueType::Next)
+            cmdArguments["stepaction"] = "next";
+        else if (type == V8ScriptingEngine::ContinueType::Out)
+            cmdArguments["stepaction"] = "out";
+        else {
+            Q_ASSERT(!"Unknown continue type.");
+            return -1;
+        }
+
+
+        cmdJson["arguments"] = cmdArguments;
+        return sendDebuggerCommand(cmdJson);
     }
 
     int evaluate(const CommandRequest& /*request*/)
@@ -346,7 +416,9 @@ public:
 
     int getVersion(CommandResponse& /*response*/)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "version";
+        return sendDebuggerCommand(cmdJson);
     }
 
     int gc(const CommandRequest& /*request*/)
@@ -404,8 +476,10 @@ private:
     bool _debug;
     QString _scriptAsync;
     Isolate *_isolate;
+    Platform *_platform;
     Persistent<Context> _context;
     V8ScriptingEngine::V8Error _error;
+    ArrayBufferAllocator _allocator;
 };
 
 V8ScriptingEngineWorker::V8ScriptingEngineWorker(const QString &script)

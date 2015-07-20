@@ -19,9 +19,6 @@
 #include "v8scriptingengine.h"
 #include "v8scriptingengineworker.h"
 
-#include <v8.h>
-#include <v8-debug.h>
-
 #include <QDebug>
 #include <QJsonDocument>
 #include <QObject>
