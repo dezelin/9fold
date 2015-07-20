@@ -266,16 +266,15 @@ public:
 
         // Create a new context.
         if (_context.IsEmpty()) {
-            Local<External> _this(External::New(_isolate, this));
-            _context = Context::New(0, global);
-            _context->SetData(_this);
+            _context = Context::New(_isolate, 0, global);
+            _context->SetAlignedPointerInEmbedderData(1, this);
         }
 
         // Enter the context for compiling and running the script.
         Context::Scope contextScope(_context);
 
         // Create a string containing the JavaScript source code.
-        Local<String> source = String::New(script.toUtf8().data());
+        Local<String> source = String::NewFromUtf8(_isolate, script.toUtf8().data());
 
         // Catch compilation and evaluation errors
         TryCatch trycatch;
@@ -458,7 +457,8 @@ private:
         QString cmd(QString::fromLatin1(json.toJson(QJsonDocument::Compact)));
         qDebug() << cmd;
 
-        Debug::SendCommand(cmd.utf16(), cmd.length(), 0, _isolate);
+        Locker locker(_isolate);
+        Debug::SendCommand(_isolate, cmd.utf16(), cmd.length());
         return 0;
     }
 
@@ -477,7 +477,7 @@ private:
     QString _scriptAsync;
     Isolate *_isolate;
     Platform *_platform;
-    Persistent<Context> _context;
+    Local<Context> _context;
     V8ScriptingEngine::V8Error _error;
     ArrayBufferAllocator _allocator;
 };
@@ -661,17 +661,8 @@ static void EventCallback2(const Debug::EventDetails& event_details)
     if (context.IsEmpty())
         return;
 
-    Handle<External> _this = Handle<External>::Cast(context->GetData());
-    Q_ASSERT(!_this.IsEmpty());
-    if (_this.IsEmpty())
-        return;
-
-    Q_ASSERT(_this->IsExternal());
-    if (!_this->IsExternal())
-        return;
-
     V8ScriptingEngineWorkerPrivate *worker =
-        static_cast<V8ScriptingEngineWorkerPrivate*>(_this->Value());
+        static_cast<V8ScriptingEngineWorkerPrivate*>(context->GetAlignedPointerFromEmbedderData(1));
     Q_ASSERT(worker);
     if (!worker)
         return;
@@ -686,17 +677,8 @@ static void MessageCallback2(const Debug::Message& message)
     if (context.IsEmpty())
         return;
 
-    Handle<External> _this = Handle<External>::Cast(context->GetData());
-    Q_ASSERT(!_this.IsEmpty());
-    if (_this.IsEmpty())
-        return;
-
-    Q_ASSERT(_this->IsExternal());
-    if (!_this->IsExternal())
-        return;
-
     V8ScriptingEngineWorkerPrivate *worker =
-        static_cast<V8ScriptingEngineWorkerPrivate*>(_this->Value());
+        static_cast<V8ScriptingEngineWorkerPrivate*>(context->GetAlignedPointerFromEmbedderData(1));
     Q_ASSERT(worker);
     if (!worker)
         return;

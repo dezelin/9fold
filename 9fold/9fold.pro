@@ -128,3 +128,5 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldv8/ -l9foldv8
 
 INCLUDEPATH += $$PWD/../9foldv8
 DEPENDPATH += $$PWD/../9foldv8
+
+LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -lv8

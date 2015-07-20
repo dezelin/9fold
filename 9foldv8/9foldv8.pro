@@ -35,4 +35,5 @@ INCLUDEPATH += $$PWD/../9foldscripting
 DEPENDPATH += $$PWD/../9foldscripting
 
 INCLUDEPATH += /home/dezelin/Workspace/v8
+LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/obj.target/tools/gyp -lv8_libplatform
 LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -lv8
