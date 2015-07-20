@@ -194,17 +194,24 @@ public:
         return _worker->run(script);
     }
 
-    void debugAsync()
+    void debugAsync(const QString &script)
     {
-        Q_ASSERT(_worker);
+        runAsync(script, true);
     }
 
-    void runAsync(const QString &script)
+    void runAsync(const QString &script, bool debug = false)
     {
         Q_Q(V8ScriptingEngine);
         Q_ASSERT(_worker);
         QScopedPointer<QThread> thread(new QThread());
         QScopedPointer<V8ScriptingEngineWorker> worker(new V8ScriptingEngineWorker(script));
+        if (debug) {
+            worker->initializeDebugging();
+            q->connect(worker.data(), SIGNAL(breakOccurred()), q, SLOT(onBreakOccurred()));
+            q->connect(worker.data(), SIGNAL(breakForCommandOccurred()), q,
+                SLOT(onBreakForCommandOccurred()));
+        }
+
         worker->moveToThread(thread.data());
         q->connect(worker.data(), SIGNAL(errorOccurred(V8ScriptingEngine::V8Error)), q,
             SLOT(onError(V8ScriptingEngine::V8Error)));
@@ -237,9 +244,17 @@ V8ScriptingEngine::V8ScriptingEngine(QObject *parent)
     : ScriptingEngine(parent), d_ptr(new V8ScriptingEnginePrivate(this))
 {
     Q_D(V8ScriptingEngine);
-    connect(d->worker(), SIGNAL(finished(QString)), this, SLOT(onFinished(QString)));
+    connect(d->worker(), SIGNAL(breakOccurred()), this, SLOT(onBreakOccurred()));
+    connect(d->worker(), SIGNAL(exceptionOccurred()), this, SLOT(onExceptionOccurred()));
+    connect(d->worker(), SIGNAL(newFunctionOccurred()), this, SLOT(onNewFunctionOccurred()));
+    connect(d->worker(), SIGNAL(beforeCompileOccurred()), this, SLOT(onBeforeCompileOccurred()));
+    connect(d->worker(), SIGNAL(afterCompileOccurred()), this, SLOT(onAfterCompileOccurred()));
+    connect(d->worker(), SIGNAL(scriptCollectedOccurred()), this, SLOT(onScriptCollectedOccurred()));
+    connect(d->worker(), SIGNAL(breakForCommandOccurred()), this, SLOT(onBreakForCommandOccurred()));
+
     connect(d->worker(), SIGNAL(errorOccurred(V8ScriptingEngine::V8Error)), this,
         SLOT(onError(V8ScriptingEngine::V8Error)));
+    connect(d->worker(), SIGNAL(finished(QString)), this, SLOT(onFinished(QString)));
 }
 
 V8ScriptingEngine::~V8ScriptingEngine()
@@ -271,10 +286,10 @@ QString V8ScriptingEngine::run(const QString& script)
     return d->run(script);
 }
 
-void V8ScriptingEngine::debugAsync()
+void V8ScriptingEngine::debugAsync(const QString &script)
 {
     Q_D(V8ScriptingEngine);
-    d->debugAsync();
+    d->debugAsync(script);
 }
 
 void V8ScriptingEngine::runAsync(const QString &script)
@@ -401,15 +416,44 @@ int V8ScriptingEngine::setVariableValue(const CommandRequest& request)
     return d->setVariableValue(request);
 }
 
-int V8ScriptingEngine::initializeDebugging()
-{
-    Q_D(V8ScriptingEngine);
-    return d->initializeDebugging();
-}
-
 //
 // Private slots
 //
+
+void V8ScriptingEngine::onBreakOccurred()
+{
+    emit breakOccurred();
+}
+
+void V8ScriptingEngine::onExceptionOccurred()
+{
+    emit exceptionOccurred();
+}
+
+void V8ScriptingEngine::onNewFunctionOccurred()
+{
+    emit newFunctionOccurred();
+}
+
+void V8ScriptingEngine::onBeforeCompileOccurred()
+{
+    emit beforeCompileOccurred();
+}
+
+void V8ScriptingEngine::onAfterCompileOccurred()
+{
+    emit afterCompileOccurred();
+}
+
+void V8ScriptingEngine::onScriptCollectedOccurred()
+{
+    emit scriptCollectedOccurred();
+}
+
+void V8ScriptingEngine::onBreakForCommandOccurred()
+{
+    emit breakForCommandOccurred();
+}
 
 void V8ScriptingEngine::onError(const V8ScriptingEngine::V8Error &error)
 {

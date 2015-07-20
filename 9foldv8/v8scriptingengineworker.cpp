@@ -72,7 +72,11 @@ public:
     typedef V8ScriptingEngine::CommandResponse CommandResponse;
 
     V8ScriptingEngineWorkerPrivate(const QString &scriptAsync,
-        V8ScriptingEngineWorker *parent) : q_ptr(parent), _scriptAsync(scriptAsync)
+        V8ScriptingEngineWorker *parent)
+        : q_ptr(parent)
+        , _seq(0)
+        , _debug(false)
+        , _scriptAsync(scriptAsync)
     {
         V8::Initialize();
         _isolate = Isolate::New();
@@ -109,12 +113,90 @@ public:
         return _scriptAsync;
     }
 
-    void eventCallback2(const Debug::EventDetails& /*event_details*/)
+    void eventCallback2(const Debug::EventDetails& event_details)
     {
+        Q_Q(V8ScriptingEngineWorker);
+        switch (event_details.GetEvent()) {
+        case Break: {
+            emit q->breakOccurred();
+            break;
+        }
+        case Exception: {
+            emit q->exceptionOccurred();
+            break;
+        }
+        case NewFunction: {
+            emit q->newFunctionOccurred();
+            break;
+        }
+        case BeforeCompile: {
+            emit q->beforeCompileOccurred();
+            break;
+        }
+        case AfterCompile: {
+            emit q->afterCompileOccurred();
+            break;
+        }
+        case ScriptCollected: {
+            emit q->scriptCollectedOccurred();
+            break;
+        }
+        case BreakForCommand: {
+            emit q->breakForCommandOccurred();
+            break;
+        }
+        default: {
+            Q_ASSERT(!"Unknown event type.");
+            break;
+        }
+        }
     }
 
-    void messageCallback2(const Debug::Message& /*message*/)
+    void messageCallback2(const Debug::Message& message)
     {
+        Q_Q(V8ScriptingEngineWorker);
+        if (message.IsEvent()) {
+            switch (message.GetEvent()) {
+            case Break: {
+                emit q->breakOccurred();
+                break;
+            }
+            case Exception: {
+                emit q->exceptionOccurred();
+                break;
+            }
+            case NewFunction: {
+                emit q->newFunctionOccurred();
+                break;
+            }
+            case BeforeCompile: {
+                emit q->beforeCompileOccurred();
+                break;
+            }
+            case AfterCompile: {
+                emit q->afterCompileOccurred();
+                break;
+            }
+            case ScriptCollected: {
+                emit q->scriptCollectedOccurred();
+                break;
+            }
+            case BreakForCommand: {
+                emit q->breakForCommandOccurred();
+                break;
+            }
+            default: {
+                Q_ASSERT(!"Unknown event type.");
+                break;
+            }
+            }
+        }
+        else if (message.IsResponse()) {
+
+        }
+        else {
+
+        }
     }
 
     QString run(const QString& script)
@@ -137,8 +219,11 @@ public:
         EncapsulateGlobal(global);
 
         // Create a new context.
-        if (_context.IsEmpty())
+        if (_context.IsEmpty()) {
+            Local<External> _this(External::New(this));
             _context = Context::New(0, global);
+            _context->SetData(_this);
+        }
 
         // Enter the context for compiling and running the script.
         Context::Scope contextScope(_context);
@@ -163,7 +248,7 @@ public:
         }
 
         if (_debug)
-            Debug::DebugBreak(_isolate);
+            Debug::DebugBreakForCommand(0, _isolate);
 
         // Run the script to get the result.
         Local<Value> _value = _script->Run();
@@ -301,8 +386,7 @@ private:
         QString cmd(QString::fromLatin1(json.toJson(QJsonDocument::Compact)));
         qDebug() << cmd;
 
-        QScopedPointer<DebuggerClientData> clientData(new DebuggerClientData(this));
-        Debug::SendCommand(cmd.utf16(), cmd.length(), clientData.take(), _isolate);
+        Debug::SendCommand(cmd.utf16(), cmd.length(), 0, _isolate);
         return 0;
     }
 
@@ -486,26 +570,64 @@ void V8ScriptingEngineWorker::execute()
     d->run(d->scriptAsync());
 }
 
+void V8ScriptingEngineWorker::executeDebug()
+{
+    Q_D(V8ScriptingEngineWorker);
+    d->run(d->scriptAsync());
+}
+
 //
 // Static callback functions
 //
 
 static void EventCallback2(const Debug::EventDetails& event_details)
 {
-    DebuggerClientData *clientData = static_cast<DebuggerClientData*>(event_details.GetClientData());
-    if (!clientData)
+    Handle<Context> context = event_details.GetEventContext();
+    Q_ASSERT(!context.IsEmpty());
+    if (context.IsEmpty())
         return;
 
-    clientData->priv()->eventCallback2(event_details);
+    Handle<External> _this = Handle<External>::Cast(context->GetData());
+    Q_ASSERT(!_this.IsEmpty());
+    if (_this.IsEmpty())
+        return;
+
+    Q_ASSERT(_this->IsExternal());
+    if (!_this->IsExternal())
+        return;
+
+    V8ScriptingEngineWorkerPrivate *worker =
+        static_cast<V8ScriptingEngineWorkerPrivate*>(_this->Value());
+    Q_ASSERT(worker);
+    if (!worker)
+        return;
+
+    worker->eventCallback2(event_details);
 }
 
 static void MessageCallback2(const Debug::Message& message)
 {
-    DebuggerClientData *clientData = static_cast<DebuggerClientData*>(message.GetClientData());
-    if (!clientData)
+    Handle<Context> context = message.GetEventContext();
+    Q_ASSERT(!context.IsEmpty());
+    if (context.IsEmpty())
         return;
 
-    clientData->priv()->messageCallback2(message);
+    Handle<External> _this = Handle<External>::Cast(context->GetData());
+    Q_ASSERT(!_this.IsEmpty());
+    if (_this.IsEmpty())
+        return;
+
+    Q_ASSERT(_this->IsExternal());
+    if (!_this->IsExternal())
+        return;
+
+    V8ScriptingEngineWorkerPrivate *worker =
+        static_cast<V8ScriptingEngineWorkerPrivate*>(_this->Value());
+    Q_ASSERT(worker);
+    if (!worker)
+        return;
+
+    worker->messageCallback2(message);
 }
 
 } // namespace engine

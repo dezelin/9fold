@@ -56,7 +56,7 @@ public:
 
     virtual QString run(const QString& script) = 0;
 
-    virtual void debugAsync() = 0;
+    virtual void debugAsync(const QString &script) = 0;
     virtual void runAsync(const QString& script) = 0;
 
     //

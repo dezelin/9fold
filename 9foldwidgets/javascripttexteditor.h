@@ -35,6 +35,7 @@ namespace editors
 
 using namespace _9fold::scripting::engine;
 
+class JavaScriptTextEditorPrivate;
 class JavaScriptTextEditor : public TextEditor
 {
     Q_OBJECT
@@ -53,14 +54,19 @@ public:
 signals:
 
 private slots:
+    void onBreak();
+    void onBreakForCommand();
     void onError(const V8ScriptingEngine::V8Error& error);
     void onFinished(const QString& result);
     void onLinesChanged();
     void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
-    class JavaScriptTextEditorPrivate;
-    QScopedPointer<JavaScriptTextEditorPrivate> _p;
+    void debugInsertBreakpoints();
+
+private:
+    JavaScriptTextEditorPrivate* const d_ptr;
+    Q_DECLARE_PRIVATE(JavaScriptTextEditor)
 };
 
 } // namespace editors

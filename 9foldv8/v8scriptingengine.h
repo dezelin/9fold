@@ -63,7 +63,7 @@ public:
 
     virtual QString run(const QString& script);
 
-    virtual void debugAsync();
+    virtual void debugAsync(const QString &script);
     virtual void runAsync(const QString& script);
 
     //
@@ -136,13 +136,27 @@ public:
     virtual int getListOfBreakpoints(const CommandRequest& request);
     virtual int setVariableValue(const CommandRequest& request);
 
-    int initializeDebugging();
-
 signals:
+    void breakOccurred();
+    void exceptionOccurred();
+    void newFunctionOccurred();
+    void beforeCompileOccurred();
+    void afterCompileOccurred();
+    void scriptCollectedOccurred();
+    void breakForCommandOccurred();
+
     void errorOccurred(const V8ScriptingEngine::V8Error& error);
     void finished(const QString& result);
 
 private slots:
+    void onBreakOccurred();
+    void onExceptionOccurred();
+    void onNewFunctionOccurred();
+    void onBeforeCompileOccurred();
+    void onAfterCompileOccurred();
+    void onScriptCollectedOccurred();
+    void onBreakForCommandOccurred();
+
     void onError(const V8ScriptingEngine::V8Error &error);
     void onFinished(const QString& result);
 

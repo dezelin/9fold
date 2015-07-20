@@ -78,11 +78,19 @@ public:
     QString version() const;
 
 signals:
+    void breakOccurred();
+    void exceptionOccurred();
+    void newFunctionOccurred();
+    void beforeCompileOccurred();
+    void afterCompileOccurred();
+    void scriptCollectedOccurred();
+    void breakForCommandOccurred();
     void errorOccurred(const V8ScriptingEngine::V8Error& error);
     void finished(const QString& result);
 
 public slots:
     void execute();
+    void executeDebug();
 
 private:
     V8ScriptingEngineWorkerPrivate* const d_ptr;

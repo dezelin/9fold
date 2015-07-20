@@ -21,6 +21,8 @@
 #include <Qsci/qscilexerjavascript.h>
 #include <Qsci/qscistyle.h>
 
+#include <QVector>
+
 namespace _9fold
 {
 namespace widgets
@@ -34,11 +36,11 @@ const int kMarginSymbols = 1;
 const int kBreakpointMarker = 8;
 const int kErrorMarker = 9;
 
-class JavaScriptTextEditor::JavaScriptTextEditorPrivate
+class JavaScriptTextEditorPrivate
 {
 public:
-    JavaScriptTextEditorPrivate(V8ScriptingEngine *engine)
-        : _engine(engine)
+    JavaScriptTextEditorPrivate(V8ScriptingEngine *engine, JavaScriptTextEditor *parent)
+        : q_ptr(parent), _engine(engine), _breakpointsSet(false)
     {
 
     }
@@ -48,12 +50,46 @@ public:
         return _engine;
     }
 
+    bool breakpointsSet() const
+    {
+        return _breakpointsSet;
+    }
+
+    void setBreakpointsSet(bool breakpointsSet)
+    {
+        _breakpointsSet = breakpointsSet;
+    }
+
+    void addBreakpoint(int line)
+    {
+        if (_breakpoints.contains(line))
+            return;
+
+        _breakpoints.push_back(line);
+    }
+
+    void clearBreakpoint(int line)
+    {
+        _breakpoints.removeAll(line);
+    }
+
+    const QVector<int>& breakpoints() const
+    {
+        return _breakpoints;
+    }
+
 private:
+    JavaScriptTextEditor* const q_ptr;
+    Q_DECLARE_PUBLIC(JavaScriptTextEditor)
+
+private:
+    QVector<int> _breakpoints;
     V8ScriptingEngine *_engine;
+    bool _breakpointsSet;
 };
 
 JavaScriptTextEditor::JavaScriptTextEditor(V8ScriptingEngine *engine, QWidget *parent)
-    : TextEditor(parent), _p(new JavaScriptTextEditorPrivate(engine))
+    : TextEditor(parent), d_ptr(new JavaScriptTextEditorPrivate(engine, this))
 {
     setLexer(new QsciLexerJavaScript(this));
     setWrapMode(QsciScintilla::WrapCharacter);
@@ -83,6 +119,8 @@ JavaScriptTextEditor::JavaScriptTextEditor(V8ScriptingEngine *engine, QWidget *p
     //
     // V8ScriptingEngine signals/slots
     //
+    connect(engine, SIGNAL(breakOccurred()), this, SLOT(onBreak()));
+    connect(engine, SIGNAL(breakForCommandOccurred()), this, SLOT(onBreakForCommand()));
     connect(engine, SIGNAL(finished(QString)), this, SLOT(onFinished(QString)));
     connect(engine, SIGNAL(errorOccurred(V8ScriptingEngine::V8Error)), this,
         SLOT(onError(V8ScriptingEngine::V8Error)));
@@ -90,37 +128,55 @@ JavaScriptTextEditor::JavaScriptTextEditor(V8ScriptingEngine *engine, QWidget *p
 
 JavaScriptTextEditor::~JavaScriptTextEditor()
 {
-
+    Q_D(JavaScriptTextEditor);
+    delete d;
 }
 
 V8ScriptingEngine *JavaScriptTextEditor::engine() const
 {
-    return _p->engine();
+    Q_D(const JavaScriptTextEditor);
+    return d->engine();
 }
 
 int JavaScriptTextEditor::debug()
 {
-    engine()->initializeDebugging();
+    engine()->debugAsync(text());
     return run();
 }
 
 int JavaScriptTextEditor::run()
 {
-    _p->engine()->runAsync(text());
+    engine()->runAsync(text());
     return 0;
 }
 
 int JavaScriptTextEditor::addBreakpoint(int line)
 {
-    V8ScriptingEngine::V8Breakpoint breakpoint(line);
-    V8ScriptingEngine::CommandRequest request;
-    request["arguments"] = breakpoint.toArguments();
-    return _p->engine()->setBreakpoint(request);
+    Q_D(JavaScriptTextEditor);
+    d->addBreakpoint(line);
+    return 0;
 }
 
-int JavaScriptTextEditor::clearBreakpoint(int /*line*/)
+int JavaScriptTextEditor::clearBreakpoint(int line)
 {
+    Q_D(JavaScriptTextEditor);
+    d->clearBreakpoint(line);
     return 0;
+}
+
+void JavaScriptTextEditor::onBreak()
+{
+}
+
+void JavaScriptTextEditor::onBreakForCommand()
+{
+    Q_D(JavaScriptTextEditor);
+    // The first break after compile
+    if (d->breakpointsSet())
+        return;
+
+    debugInsertBreakpoints();
+    d->setBreakpointsSet(true);
 }
 
 void JavaScriptTextEditor::onError(const V8ScriptingEngine::V8Error &error)
@@ -134,7 +190,8 @@ void JavaScriptTextEditor::onError(const V8ScriptingEngine::V8Error &error)
 
 void JavaScriptTextEditor::onFinished(const QString &result)
 {
-
+    Q_D(JavaScriptTextEditor);
+    d->setBreakpointsSet(false);
 }
 
 void JavaScriptTextEditor::onLinesChanged()
@@ -159,6 +216,17 @@ void JavaScriptTextEditor::onMarginClicked(int /*margin*/, int line, Qt::Keyboar
     else {
         markerAdd(line, kBreakpointMarker);
         addBreakpoint(line);
+    }
+}
+
+void JavaScriptTextEditor::debugInsertBreakpoints()
+{
+    Q_D(JavaScriptTextEditor);
+    for(int i = 0; i < d->breakpoints().size(); ++i) {
+        V8ScriptingEngine::V8Breakpoint breakpoint(d->breakpoints()[i]);
+        V8ScriptingEngine::CommandRequest request;
+        request["arguments"] = breakpoint.toArguments();
+        engine()->setBreakpoint(request);
     }
 }
 
