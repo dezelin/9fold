@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = 9foldscene
 TEMPLATE = lib
 
-QMAKE_CXXFLAGS += -std=c++11 -Wall
+QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra
 
 DEFINES += _9FOLDSCENE_LIBRARY
 

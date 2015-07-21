@@ -48,12 +48,11 @@ public:
     //
 
     typedef V8ScriptingEngine::V8Error V8Error;
-    typedef V8ScriptingEngine::ContinueType ContinueType;
     typedef V8ScriptingEngine::CommandRequest CommandRequest;
     typedef V8ScriptingEngine::CommandResponse CommandResponse;
 
     int breakZ();
-    int continueZ(ContinueType type);
+    int continueZ(const CommandRequest& request);
     int evaluate(const CommandRequest& request);
     int lookup(const CommandRequest& request);
     int getBacktrace(const CommandRequest& request);
@@ -67,7 +66,8 @@ public:
     int clearBreakpoint(const CommandRequest& request);
     int setExceptionBreak(const CommandRequest& request);
     int getFlags(const CommandRequest& request);
-    int getVersion(CommandResponse& response);
+    int getVersion(const CommandRequest& request);
+    int disconnect(const CommandRequest &request);
     int gc(const CommandRequest& request);
     int getListOfBreakpoints(const CommandRequest& request);
     int setVariableValue(const CommandRequest& request);
@@ -87,6 +87,25 @@ signals:
     void compileErrorOccurred();
     void promiseEventOccurred();
     void asyncTaskEventOccurred();
+
+    void continueResponse(const CommandResponse& response);
+    void evaluateResponse(const CommandResponse& response);
+    void lookupResponse(const CommandResponse& response);
+    void backTraceResponse(const CommandResponse& response);
+    void frameResponse(const CommandResponse& response);
+    void scopeResponse(const CommandResponse& response);
+    void scopesResponse(const CommandResponse& response);
+    void scriptsResponse(const CommandResponse& response);
+    void sourceResponse(const CommandResponse& response);
+    void setBreakpointResponse(const CommandResponse& response);
+    void changeBreakpointResponse(const CommandResponse& response);
+    void clearBreakpointResponse(const CommandResponse& response);
+    void setExceptionBreakResponse(const CommandResponse& response);
+    void v8flagsResponse(const CommandResponse& response);
+    void versionResponse(const CommandResponse& response);
+    void gcResponse(const CommandResponse& response);
+    void listBreakpointsResponse(const CommandResponse& response);
+    void setVariableValueResponse(const CommandResponse& response);
 
     void errorOccurred(const V8ScriptingEngine::V8Error& error);
     void finished(const QString& result);

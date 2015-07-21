@@ -75,6 +75,7 @@ public:
     public:
         V8Breakpoint();
         V8Breakpoint(int line);
+        V8Breakpoint(const QJsonObject& object);
         virtual ~V8Breakpoint();
 
         int line() const;
@@ -117,7 +118,7 @@ public:
     };
 
     virtual int breakZ();
-    virtual int continueZ(ContinueType type);
+    virtual int continueZ(const CommandRequest& request);
     virtual int evaluate(const CommandRequest& request);
     virtual int lookup(const CommandRequest& request);
     virtual int getBacktrace(const CommandRequest& request);
@@ -131,7 +132,8 @@ public:
     virtual int clearBreakpoint(const CommandRequest& request);
     virtual int setExceptionBreak(const CommandRequest& request);
     virtual int getFlags(const CommandRequest& request);
-    virtual int getVersion(CommandResponse& response);
+    virtual int getVersion(const CommandRequest &request);
+    virtual int disconnect(const CommandRequest& request);
     virtual int gc(const CommandRequest& request);
     virtual int getListOfBreakpoints(const CommandRequest& request);
     virtual int setVariableValue(const CommandRequest& request);
@@ -142,8 +144,28 @@ signals:
     void newFunctionOccurred();
     void beforeCompileOccurred();
     void afterCompileOccurred();
-    void scriptCollectedOccurred();
-    void breakForCommandOccurred();
+    void compileErrorOccurred();
+    void promiseEventOccurred();
+    void asyncTaskEventOccurred();
+
+    void continueResponse(const CommandResponse& response);
+    void evaluateResponse(const CommandResponse& response);
+    void lookupResponse(const CommandResponse& response);
+    void backTraceResponse(const CommandResponse& response);
+    void frameResponse(const CommandResponse& response);
+    void scopeResponse(const CommandResponse& response);
+    void scopesResponse(const CommandResponse& response);
+    void scriptsResponse(const CommandResponse& response);
+    void sourceResponse(const CommandResponse& response);
+    void setBreakpointResponse(const CommandResponse& response);
+    void changeBreakpointResponse(const CommandResponse& response);
+    void clearBreakpointResponse(const CommandResponse& response);
+    void setExceptionBreakResponse(const CommandResponse& response);
+    void v8flagsResponse(const CommandResponse& response);
+    void versionResponse(const CommandResponse& response);
+    void gcResponse(const CommandResponse& response);
+    void listBreakpointsResponse(const CommandResponse& response);
+    void setVariableValueResponse(const CommandResponse& response);
 
     void errorOccurred(const V8ScriptingEngine::V8Error& error);
     void finished(const QString& result);
@@ -154,8 +176,28 @@ private slots:
     void onNewFunctionOccurred();
     void onBeforeCompileOccurred();
     void onAfterCompileOccurred();
-    void onScriptCollectedOccurred();
-    void onBreakForCommandOccurred();
+    void onCompileErrorOccurred();
+    void onPromiseEventOccurred();
+    void onAsyncTaskEventOccurred();
+
+    void onContinueResponse(const CommandResponse& response);
+    void onEvaluateResponse(const CommandResponse& response);
+    void onLookupResponse(const CommandResponse& response);
+    void onBackTraceResponse(const CommandResponse& response);
+    void onFrameResponse(const CommandResponse& response);
+    void onScopeResponse(const CommandResponse& response);
+    void onScopesResponse(const CommandResponse& response);
+    void onScriptsResponse(const CommandResponse& response);
+    void onSourceResponse(const CommandResponse& response);
+    void onSetBreakpointResponse(const CommandResponse& response);
+    void onChangeBreakpointResponse(const CommandResponse& response);
+    void onClearBreakpointResponse(const CommandResponse& response);
+    void onSetExceptionBreakResponse(const CommandResponse& response);
+    void onV8flagsResponse(const CommandResponse& response);
+    void onVersionResponse(const CommandResponse& response);
+    void onGcResponse(const CommandResponse& response);
+    void onListBreakpointsResponse(const CommandResponse& response);
+    void onSetVariableValueResponse(const CommandResponse& response);
 
     void onError(const V8ScriptingEngine::V8Error &error);
     void onFinished(const QString& result);

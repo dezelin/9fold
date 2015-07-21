@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = 9foldpatterns
 TEMPLATE = lib
 
-QMAKE_CXXFLAGS += -std=c++11 -Wall
+QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra
 
 DEFINES += _9FOLDPATTERNS_LIBRARY
 

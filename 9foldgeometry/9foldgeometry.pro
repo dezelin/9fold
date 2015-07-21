@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = 9foldgeometry
 TEMPLATE = lib
 
-QMAKE_CXXFLAGS += -std=c++11 -Wall
+QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra
 
 DEFINES += _9FOLDGEOMETRY_LIBRARY
 

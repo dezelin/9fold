@@ -18,6 +18,8 @@
 
 #include "v8scriptingengineworker.h"
 
+#include <singleton.h>
+
 #include <QCoreApplication>
 #include <QDebug>
 #include <QJsonDocument>
@@ -32,6 +34,43 @@ namespace engine
 {
 
 using namespace v8;
+using namespace _9fold::patterns;
+
+//
+// Forward declarations of callbacks
+//
+
+static void EventCallback(const Debug::EventDetails& event_details);
+static void MessageCallback(const Debug::Message& message);
+
+//
+// Platform singleton
+//
+
+class PlatformInitializer
+{
+public:
+    PlatformInitializer()
+    {
+        V8::InitializeICU();
+        _platform = platform::CreateDefaultPlatform();
+        V8::InitializePlatform(_platform);
+        V8::Initialize();
+
+        QString flags("--harmony --harmony-proxies --debugger --expose_debug_as=v8debug");
+        V8::SetFlagsFromString(flags.toUtf8().data(), flags.length());
+    }
+
+    ~PlatformInitializer()
+    {
+        V8::Dispose();
+        V8::ShutdownPlatform();
+        delete _platform;
+    }
+
+private:
+    Platform *_platform;
+};
 
 //
 // V8 allocator
@@ -77,52 +116,46 @@ private:
 };
 
 //
-// Forward declarations of callbacks
-//
-
-static void EventCallback2(const Debug::EventDetails& event_details);
-static void MessageCallback2(const Debug::Message& message);
-
-
-//
-// Private class
+// Private class (V8 Isolate)
 //
 
 class V8ScriptingEngineWorkerPrivate
 {
 public:
     typedef V8ScriptingEngine::V8Error V8Error;
-    typedef V8ScriptingEngine::ContinueType ContinueType;
     typedef V8ScriptingEngine::CommandRequest CommandRequest;
     typedef V8ScriptingEngine::CommandResponse CommandResponse;
 
     V8ScriptingEngineWorkerPrivate(const QString &scriptAsync,
         V8ScriptingEngineWorker *parent)
         : q_ptr(parent)
-        , _seq(1)
+        , _seq(0)
         , _debug(false)
         , _scriptAsync(scriptAsync)
     {
-        V8::InitializeICU();
-        _platform = platform::CreateDefaultPlatform();
-        V8::InitializePlatform(_platform);
-        V8::Initialize();
-
-        QString flags("--harmony --debugger --expose_debug_as=v8debug");
-        V8::SetFlagsFromString(flags.toUtf8().data(), flags.length());
+        Singleton<PlatformInitializer>::instance();
 
         Isolate::CreateParams createParams;
         createParams.array_buffer_allocator = &_allocator;
         _isolate = Isolate::New(createParams);
-        _isolate->Enter();
+
+        Locker lock(_isolate);
+        Isolate::Scope scope(_isolate);
+
+        // Set debug event callback handler
+        Debug::SetDebugEventListener(EventCallback);
+
+        // Set debug message callback handler
+        Debug::SetMessageHandler(MessageCallback);
+
     }
 
     ~V8ScriptingEngineWorkerPrivate()
     {
-        _isolate->Exit();
-        _isolate->Dispose();
-        V8::Dispose();
-        V8::ShutdownPlatform();
+        Locker lock(_isolate);
+        _context.Reset();
+        // FIXME: This has to be replaced by a call to Dispose(). Memory leak??
+        _isolate->TerminateExecution();
     }
 
     void EncapsulateGlobal(Local<ObjectTemplate>& /*global*/)
@@ -151,7 +184,7 @@ public:
         return _scriptAsync;
     }
 
-    void eventCallback2(const Debug::EventDetails& event_details)
+    void eventCallback(const Debug::EventDetails& event_details)
     {
         Q_Q(V8ScriptingEngineWorker);
         switch (event_details.GetEvent()) {
@@ -194,7 +227,7 @@ public:
         }
     }
 
-    void messageCallback2(const Debug::Message& message)
+    void messageCallback(const Debug::Message& message)
     {
         Q_Q(V8ScriptingEngineWorker);
         if (message.IsEvent()) {
@@ -238,27 +271,78 @@ public:
             }
         }
         else if (message.IsResponse()) {
+            Local<String> jsonMessage = message.GetJSON();
+            Q_ASSERT(!jsonMessage.IsEmpty());
+            if (jsonMessage.IsEmpty()) {
+                qWarning() << "Got empty JSON response from V8";
+                return;
+            }
 
-        }
-        else {
+            QString jsonString(*String::Utf8Value(jsonMessage));
+            qDebug() << "V8 response: " << jsonString;
 
+            QJsonParseError error;
+            QJsonDocument json = QJsonDocument::fromJson(jsonString.toUtf8(), &error);
+            if (error.error != QJsonParseError::NoError) {
+                qCritical() << "Got invalid JSON response from V8: " << error.errorString();
+                return;
+            }
+
+            CommandResponse jsonResponse(json.object());
+            Q_ASSERT(jsonResponse["type"] == "response");
+
+            if (jsonResponse["command"] == "continue")
+                emit q->continueResponse(jsonResponse);
+            else if (jsonResponse["command"] == "evaluate")
+                emit q->evaluateResponse(jsonResponse);
+            else if (jsonResponse["command"] == "lookup")
+                emit q->lookupResponse(jsonResponse);
+            else if (jsonResponse["command"] == "backtrace")
+                emit q->backTraceResponse(jsonResponse);
+            else if (jsonResponse["command"] == "frame")
+                emit q->frameResponse(jsonResponse);
+            else if (jsonResponse["command"] == "scope")
+                emit q->scopeResponse(jsonResponse);
+            else if (jsonResponse["command"] == "scopes")
+                emit q->scopesResponse(jsonResponse);
+            else if (jsonResponse["command"] == "scripts")
+                emit q->scriptsResponse(jsonResponse);
+            else if (jsonResponse["command"] == "source")
+                emit q->sourceResponse(jsonResponse);
+            else if (jsonResponse["command"] == "setbreakpoint")
+                emit q->setBreakpointResponse(jsonResponse);
+            else if (jsonResponse["command"] == "changebreakpoint")
+                emit q->changeBreakpointResponse(jsonResponse);
+            else if (jsonResponse["command"] == "clearbreakpoint")
+                emit q->clearBreakpointResponse(jsonResponse);
+            else if (jsonResponse["command"] == "setexceptionbreak")
+                emit q->setExceptionBreakResponse(jsonResponse);
+            else if (jsonResponse["command"] == "v8flags")
+                emit q->v8flagsResponse(jsonResponse);
+            else if (jsonResponse["command"] == "version")
+                emit q->versionResponse(jsonResponse);
+            else if (jsonResponse["command"] == "gc")
+                emit q->gcResponse(jsonResponse);
+            else if (jsonResponse["command"] == "listbreakpoints")
+                emit q->listBreakpointsResponse(jsonResponse);
+            else if (jsonResponse["command"] == "setvariablevalue")
+                emit q->setVariableValueResponse(jsonResponse);
+            else
+                Q_ASSERT(!"Unsupported command response.");
         }
+        else
+            Q_ASSERT(!"Unsupported message.");
     }
 
     QString run(const QString& script)
     {
         Q_Q(V8ScriptingEngineWorker);
 
+        Locker lock(_isolate);
         Isolate::Scope scope(_isolate);
 
         // Create a stack-allocated handle scope.
         HandleScope handleScope(_isolate);
-
-        // Set debug event callback handler
-        Debug::SetDebugEventListener(EventCallback2);
-
-        // Set debug message callback handler
-        Debug::SetMessageHandler(MessageCallback2);
 
         // Create global object
         Local<ObjectTemplate> global = ObjectTemplate::New();
@@ -266,12 +350,13 @@ public:
 
         // Create a new context.
         if (_context.IsEmpty()) {
-            _context = Context::New(_isolate, 0, global);
-            _context->SetAlignedPointerInEmbedderData(1, this);
+            Local<Context> localContext = Context::New(_isolate, 0, global);
+            localContext->SetAlignedPointerInEmbedderData(1, this);
+            _context.Reset(_isolate, localContext);
         }
 
         // Enter the context for compiling and running the script.
-        Context::Scope contextScope(_context);
+        Context::Scope contextScope(_context.Get(_isolate));
 
         // Create a string containing the JavaScript source code.
         Local<String> source = String::NewFromUtf8(_isolate, script.toUtf8().data());
@@ -305,11 +390,6 @@ public:
             emit q->finished(result);
             return result;
         }
-        while(_debug) {
-            Debug::ProcessDebugMessages();
-            QCoreApplication::processEvents();
-            q->thread()->usleep(100);
-        }
 
         result = QString::fromLatin1(*String::Utf8Value(_value));
         emit q->finished(result);
@@ -319,70 +399,82 @@ public:
 
     int breakZ()
     {
+        Locker locker(_isolate);
+        Isolate::Scope scope(_isolate);
+        Debug::DebugBreak(_isolate);
         return 0;
     }
 
-    int continueZ(ContinueType type)
+    int continueZ(const CommandRequest& request)
     {
         QJsonObject cmdJson;
         cmdJson["command"] = "continue";
-        QJsonObject cmdArguments;
-        cmdArguments["stepcount"] = 1;
-
-        if (type == V8ScriptingEngine::ContinueType::In)
-            cmdArguments["stepaction"] = "in";
-        else if (type == V8ScriptingEngine::ContinueType::Next)
-            cmdArguments["stepaction"] = "next";
-        else if (type == V8ScriptingEngine::ContinueType::Out)
-            cmdArguments["stepaction"] = "out";
-        else {
-            Q_ASSERT(!"Unknown continue type.");
-            return -1;
-        }
-
-
-        cmdJson["arguments"] = cmdArguments;
+        cmdJson["arguments"] = request["arguments"];
         return sendDebuggerCommand(cmdJson);
     }
 
-    int evaluate(const CommandRequest& /*request*/)
+    int evaluate(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "evaluate";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int lookup(const CommandRequest& /*request*/)
+    int lookup(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "lookup";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int getBacktrace(const CommandRequest& /*request*/)
+    int getBacktrace(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "backtrace";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int getFrame(const CommandRequest& /*request*/)
+    int getFrame(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "frame";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int getScope(const CommandRequest& /*request*/)
+    int getScope(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "scope";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int getScopes(const CommandRequest& /*request*/)
+    int getScopes(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "scopes";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int getScripts(const CommandRequest& /*request*/)
+    int getScripts(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "scripts";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int getSource(const CommandRequest& /*request*/)
+    int getSource(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "source";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
     int setBreakpoint(const CommandRequest& request)
@@ -393,46 +485,76 @@ public:
         return sendDebuggerCommand(cmdJson);
     }
 
-    int changeBreakpoint(const CommandRequest& /*request*/)
-    {
-        return 0;
-    }
-
-    int clearBreakpoint(const CommandRequest& /*request*/)
-    {
-        return 0;
-    }
-
-    int setExceptionBreak(const CommandRequest& /*request*/)
-    {
-        return 0;
-    }
-
-    int getFlags(const CommandRequest& /*request*/)
-    {
-        return 0;
-    }
-
-    int getVersion(CommandResponse& /*response*/)
+    int changeBreakpoint(const CommandRequest& request)
     {
         QJsonObject cmdJson;
-        cmdJson["command"] = "version";
+        cmdJson["command"] = "changebreakpoint";
+        cmdJson["arguments"] = request["arguments"];
         return sendDebuggerCommand(cmdJson);
     }
 
-    int gc(const CommandRequest& /*request*/)
+    int clearBreakpoint(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "clearbreakpoint";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int getListOfBreakpoints(const CommandRequest& /*request*/)
+    int setExceptionBreak(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "setexceptionbreak";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
-    int setVariableValue(const CommandRequest& /*request*/)
+    int getFlags(const CommandRequest& request)
     {
-        return 0;
+        QJsonObject cmdJson;
+        cmdJson["command"] = "v8flags";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
+    }
+
+    int getVersion(const CommandRequest& request)
+    {
+        QJsonObject cmdJson;
+        cmdJson["command"] = "version";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
+    }
+
+    int disconnect(const CommandRequest& request)
+    {
+        QJsonObject cmdJson;
+        cmdJson["command"] = "disconnect";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
+    }
+
+    int gc(const CommandRequest& request)
+    {
+        QJsonObject cmdJson;
+        cmdJson["command"] = "gc";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
+    }
+
+    int getListOfBreakpoints(const CommandRequest& request)
+    {
+        QJsonObject cmdJson;
+        cmdJson["command"] = "listbreakpoints";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
+    }
+
+    int setVariableValue(const CommandRequest& request)
+    {
+        QJsonObject cmdJson;
+        cmdJson["command"] = "setvariablevalue";
+        cmdJson["arguments"] = request["arguments"];
+        return sendDebuggerCommand(cmdJson);
     }
 
 private:
@@ -455,10 +577,15 @@ private:
 
         QJsonDocument json(cmdJson);
         QString cmd(QString::fromLatin1(json.toJson(QJsonDocument::Compact)));
-        qDebug() << cmd;
+        qDebug() << "V8 command: " << cmd;
 
         Locker locker(_isolate);
-        Debug::SendCommand(_isolate, cmd.utf16(), cmd.length());
+        Isolate::Scope scope(_isolate);
+
+        QScopedPointer<DebuggerClientData> clientData(new DebuggerClientData(this));
+
+        Debug::SendCommand(_isolate, cmd.utf16(), cmd.length(), clientData.take());
+        Debug::ProcessDebugMessages();
         return 0;
     }
 
@@ -476,8 +603,7 @@ private:
     bool _debug;
     QString _scriptAsync;
     Isolate *_isolate;
-    Platform *_platform;
-    Local<Context> _context;
+    Persistent<Context> _context;
     V8ScriptingEngine::V8Error _error;
     ArrayBufferAllocator _allocator;
 };
@@ -506,10 +632,10 @@ int V8ScriptingEngineWorker::breakZ()
     return d->breakZ();
 }
 
-int V8ScriptingEngineWorker::continueZ(ContinueType type)
+int V8ScriptingEngineWorker::continueZ(const CommandRequest& request)
 {
     Q_D(V8ScriptingEngineWorker);
-    return d->continueZ(type);
+    return d->continueZ(request);
 }
 
 int V8ScriptingEngineWorker::evaluate(const CommandRequest &request)
@@ -590,10 +716,16 @@ int V8ScriptingEngineWorker::getFlags(const CommandRequest &request)
     return d->getFlags(request);
 }
 
-int V8ScriptingEngineWorker::getVersion(CommandResponse &response)
+int V8ScriptingEngineWorker::getVersion(const CommandRequest &request)
 {
     Q_D(V8ScriptingEngineWorker);
-    return d->getVersion(response);
+    return d->getVersion(request);
+}
+
+int V8ScriptingEngineWorker::disconnect(const CommandRequest &request)
+{
+    Q_D(V8ScriptingEngineWorker);
+    return d->disconnect(request);
 }
 
 int V8ScriptingEngineWorker::gc(const CommandRequest &request)
@@ -654,8 +786,14 @@ void V8ScriptingEngineWorker::executeDebug()
 // Static callback functions
 //
 
-static void EventCallback2(const Debug::EventDetails& event_details)
+static void EventCallback(const Debug::EventDetails& event_details)
 {
+    DebuggerClientData *clientData = static_cast<DebuggerClientData*>(event_details.GetClientData());
+    if (clientData) {
+        clientData->priv()->eventCallback(event_details);
+        return;
+    }
+
     Handle<Context> context = event_details.GetEventContext();
     Q_ASSERT(!context.IsEmpty());
     if (context.IsEmpty())
@@ -667,11 +805,20 @@ static void EventCallback2(const Debug::EventDetails& event_details)
     if (!worker)
         return;
 
-    worker->eventCallback2(event_details);
+    worker->eventCallback(event_details);
 }
 
-static void MessageCallback2(const Debug::Message& message)
+static void MessageCallback(const Debug::Message& message)
 {
+    DebuggerClientData *clientData = static_cast<DebuggerClientData*>(message.GetClientData());
+    if (clientData) {
+        clientData->priv()->messageCallback(message);
+        return;
+    }
+
+    Locker locker(message.GetIsolate());
+    Isolate::Scope scope(message.GetIsolate());
+
     Handle<Context> context = message.GetEventContext();
     Q_ASSERT(!context.IsEmpty());
     if (context.IsEmpty())
@@ -683,7 +830,7 @@ static void MessageCallback2(const Debug::Message& message)
     if (!worker)
         return;
 
-    worker->messageCallback2(message);
+    worker->messageCallback(message);
 }
 
 } // namespace engine

@@ -40,7 +40,6 @@ class V8ScriptingEnginePrivate
 {
 public:
     typedef V8ScriptingEngine::V8Error V8Error;
-    typedef V8ScriptingEngine::ContinueType ContinueType;
     typedef V8ScriptingEngine::CommandRequest CommandRequest;
     typedef V8ScriptingEngine::CommandResponse CommandResponse;
 
@@ -65,10 +64,10 @@ public:
         return _worker->breakZ();
     }
 
-    int continueZ(ContinueType type)
+    int continueZ(const CommandRequest& request)
     {
         Q_ASSERT(_worker);
-        return _worker->continueZ(type);
+        return _worker->continueZ(request);
     }
 
     int evaluate(const CommandRequest& request)
@@ -149,10 +148,16 @@ public:
         return _worker->getFlags(request);
     }
 
-    int getVersion(CommandResponse& response)
+    int getVersion(const CommandRequest& request)
     {
         Q_ASSERT(_worker);
-        return _worker->getVersion(response);
+        return _worker->getVersion(request);
+    }
+
+    int disconnect(const CommandRequest &request)
+    {
+        Q_ASSERT(_worker);
+        return _worker->disconnect(request);
     }
 
     int gc(const CommandRequest& request)
@@ -204,12 +209,58 @@ public:
         QScopedPointer<V8ScriptingEngineWorker> worker(new V8ScriptingEngineWorker(script));
         if (debug) {
             worker->initializeDebugging();
-            q->connect(worker.data(), SIGNAL(breakOccurred()), q, SLOT(onBreakOccurred()));
-            q->connect(worker.data(), SIGNAL(breakForCommandOccurred()), q,
-                SLOT(onBreakForCommandOccurred()));
         }
 
         worker->moveToThread(thread.data());
+
+        // Connect to Debug events
+        q->connect(worker.data(), SIGNAL(breakOccurred()), q, SLOT(onBreakOccurred()));
+        q->connect(worker.data(), SIGNAL(exceptionOccurred()), q, SLOT(onExceptionOccurred()));
+        q->connect(worker.data(), SIGNAL(newFunctionOccurred()), q, SLOT(onNewFunctionOccurred()));
+        q->connect(worker.data(), SIGNAL(beforeCompileOccurred()), q, SLOT(onBeforeCompileOccurred()));
+        q->connect(worker.data(), SIGNAL(afterCompileOccurred()), q, SLOT(onAfterCompileOccurred()));
+        q->connect(worker.data(), SIGNAL(compileErrorOccurred()), q, SLOT(onCompileErrorOccurred()));
+        q->connect(worker.data(), SIGNAL(promiseEventOccurred()), q, SLOT(onPromiseEventOccurred()));
+        q->connect(worker.data(), SIGNAL(asyncTaskEventOccurred()), q, SLOT(onAsyncTaskEventOccurred()));
+
+        q->connect(worker.data(), SIGNAL(continueResponse(CommandResponse)),
+            q, SLOT(onContinueResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(evaluateResponse(CommandResponse)),
+            q, SLOT(onEvaluateResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(lookupResponse(CommandResponse)),
+            q, SLOT(onLookupResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(backTraceResponse(CommandResponse)),
+            q, SLOT(onBackTraceResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(frameResponse(CommandResponse)),
+            q, SLOT(onFrameResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(scopeResponse(CommandResponse)),
+            q, SLOT(onScopeResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(scopesResponse(CommandResponse)),
+            q, SLOT(onScopesResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(scriptsResponse(CommandResponse)),
+            q, SLOT(onScriptsResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(sourceResponse(CommandResponse)),
+            q, SLOT(onSourceResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(setBreakpointResponse(CommandResponse)),
+            q, SLOT(onSetBreakpointResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(changeBreakpointResponse(CommandResponse)),
+            q, SLOT(onChangeBreakpointResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(clearBreakpointResponse(CommandResponse)),
+            q, SLOT(onClearBreakpointResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(setExceptionBreakResponse(CommandResponse)),
+            q, SLOT(onSetExceptionBreakResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(v8flagsResponse(CommandResponse)),
+            q, SLOT(onV8flagsResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(versionResponse(CommandResponse)),
+            q, SLOT(onVersionResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(gcResponse(CommandResponse)),
+            q, SLOT(onGcResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(listBreakpointsResponse(CommandResponse)),
+            q, SLOT(onListBreakpointsResponse(CommandResponse)));
+        q->connect(worker.data(), SIGNAL(setVariableValueResponse(CommandResponse)),
+            q, SLOT(onSetVariableValueResponse(CommandResponse)));
+
+        // Connect to Isolate and thread events
         q->connect(worker.data(), SIGNAL(errorOccurred(V8ScriptingEngine::V8Error)), q,
             SLOT(onError(V8ScriptingEngine::V8Error)));
         q->connect(thread.data(), SIGNAL(started()), worker.data(), SLOT(execute()));
@@ -246,8 +297,46 @@ V8ScriptingEngine::V8ScriptingEngine(QObject *parent)
     connect(d->worker(), SIGNAL(newFunctionOccurred()), this, SLOT(onNewFunctionOccurred()));
     connect(d->worker(), SIGNAL(beforeCompileOccurred()), this, SLOT(onBeforeCompileOccurred()));
     connect(d->worker(), SIGNAL(afterCompileOccurred()), this, SLOT(onAfterCompileOccurred()));
-    connect(d->worker(), SIGNAL(scriptCollectedOccurred()), this, SLOT(onScriptCollectedOccurred()));
-    connect(d->worker(), SIGNAL(breakForCommandOccurred()), this, SLOT(onBreakForCommandOccurred()));
+    connect(d->worker(), SIGNAL(compileErrorOccurred()), this, SLOT(onCompileErrorOccurred()));
+    connect(d->worker(), SIGNAL(promiseEventOccurred()), this, SLOT(onPromiseEventOccurred()));
+    connect(d->worker(), SIGNAL(asyncTaskEventOccurred()), this, SLOT(onAsyncTaskEventOccurred()));
+
+    connect(d->worker(), SIGNAL(continueResponse(CommandResponse)),
+        this, SLOT(onContinueResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(evaluateResponse(CommandResponse)),
+        this, SLOT(onEvaluateResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(lookupResponse(CommandResponse)),
+        this, SLOT(onLookupResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(backTraceResponse(CommandResponse)),
+        this, SLOT(onBackTraceResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(frameResponse(CommandResponse)),
+        this, SLOT(onFrameResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(scopeResponse(CommandResponse)),
+        this, SLOT(onScopeResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(scopesResponse(CommandResponse)),
+        this, SLOT(onScopesResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(scriptsResponse(CommandResponse)),
+        this, SLOT(onScriptsResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(sourceResponse(CommandResponse)),
+        this, SLOT(onSourceResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(setBreakpointResponse(CommandResponse)),
+        this, SLOT(onSetBreakpointResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(changeBreakpointResponse(CommandResponse)),
+        this, SLOT(onChangeBreakpointResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(clearBreakpointResponse(CommandResponse)),
+        this, SLOT(onClearBreakpointResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(setExceptionBreakResponse(CommandResponse)),
+        this, SLOT(onSetExceptionBreakResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(v8flagsResponse(CommandResponse)),
+        this, SLOT(onV8flagsResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(versionResponse(CommandResponse)),
+        this, SLOT(onVersionResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(gcResponse(CommandResponse)),
+        this, SLOT(onGcResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(listBreakpointsResponse(CommandResponse)),
+        this, SLOT(onListBreakpointsResponse(CommandResponse)));
+    connect(d->worker(), SIGNAL(setVariableValueResponse(CommandResponse)),
+        this, SLOT(onSetVariableValueResponse(CommandResponse)));
 
     connect(d->worker(), SIGNAL(errorOccurred(V8ScriptingEngine::V8Error)), this,
         SLOT(onError(V8ScriptingEngine::V8Error)));
@@ -305,10 +394,10 @@ int V8ScriptingEngine::breakZ()
     return d->breakZ();
 }
 
-int V8ScriptingEngine::continueZ(ContinueType type)
+int V8ScriptingEngine::continueZ(const CommandRequest &request)
 {
     Q_D(V8ScriptingEngine);
-    return d->continueZ(type);
+    return d->continueZ(request);
 }
 
 int V8ScriptingEngine::evaluate(const CommandRequest& request)
@@ -389,10 +478,16 @@ int V8ScriptingEngine::getFlags(const CommandRequest& request)
     return d->getFlags(request);
 }
 
-int V8ScriptingEngine::getVersion(CommandResponse& response)
+int V8ScriptingEngine::getVersion(const CommandRequest& request)
 {
     Q_D(V8ScriptingEngine);
-    return d->getVersion(response);
+    return d->getVersion(request);
+}
+
+int V8ScriptingEngine::disconnect(const CommandRequest &request)
+{
+    Q_D(V8ScriptingEngine);
+    return d->disconnect(request);
 }
 
 int V8ScriptingEngine::gc(const CommandRequest& request)
@@ -442,14 +537,109 @@ void V8ScriptingEngine::onAfterCompileOccurred()
     emit afterCompileOccurred();
 }
 
-void V8ScriptingEngine::onScriptCollectedOccurred()
+void V8ScriptingEngine::onCompileErrorOccurred()
 {
-    emit scriptCollectedOccurred();
+    emit compileErrorOccurred();
 }
 
-void V8ScriptingEngine::onBreakForCommandOccurred()
+void V8ScriptingEngine::onPromiseEventOccurred()
 {
-    emit breakForCommandOccurred();
+    emit promiseEventOccurred();
+}
+
+void V8ScriptingEngine::onAsyncTaskEventOccurred()
+{
+    emit asyncTaskEventOccurred();
+}
+
+void V8ScriptingEngine::onContinueResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit continueResponse(response);
+}
+
+void V8ScriptingEngine::onEvaluateResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit evaluateResponse(response);
+}
+
+void V8ScriptingEngine::onLookupResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit lookupResponse(response);
+}
+
+void V8ScriptingEngine::onBackTraceResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit backTraceResponse(response);
+}
+
+void V8ScriptingEngine::onFrameResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit frameResponse(response);
+}
+
+void V8ScriptingEngine::onScopeResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit scopeResponse(response);
+}
+
+void V8ScriptingEngine::onScopesResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit scopesResponse(response);
+}
+
+void V8ScriptingEngine::onScriptsResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit scriptsResponse(response);
+}
+
+void V8ScriptingEngine::onSourceResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit sourceResponse(response);
+}
+
+void V8ScriptingEngine::onSetBreakpointResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit setBreakpointResponse(response);
+}
+
+void V8ScriptingEngine::onChangeBreakpointResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit changeBreakpointResponse(response);
+}
+
+void V8ScriptingEngine::onClearBreakpointResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit clearBreakpointResponse(response);
+}
+
+void V8ScriptingEngine::onSetExceptionBreakResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit setExceptionBreakResponse(response);
+}
+
+void V8ScriptingEngine::onV8flagsResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit v8flagsResponse(response);
+}
+
+void V8ScriptingEngine::onVersionResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit versionResponse(response);
+}
+
+void V8ScriptingEngine::onGcResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit gcResponse(response);
+}
+
+void V8ScriptingEngine::onListBreakpointsResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit listBreakpointsResponse(response);
+}
+
+void V8ScriptingEngine::onSetVariableValueResponse(const ScriptingEngine::CommandResponse &response)
+{
+    emit setVariableValueResponse(response);
 }
 
 void V8ScriptingEngine::onError(const V8ScriptingEngine::V8Error &error)
@@ -477,6 +667,12 @@ V8ScriptingEngine::V8Breakpoint::V8Breakpoint(int line)
     : Breakpoint()
 {
     insert(kV8BreakpointLine, line);
+}
+
+V8ScriptingEngine::V8Breakpoint::V8Breakpoint(const QJsonObject &object)
+    : Breakpoint(object)
+{
+
 }
 
 V8ScriptingEngine::V8Breakpoint::~V8Breakpoint()

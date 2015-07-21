@@ -9,7 +9,7 @@ QT       += core gui widgets
 TARGET = 9fold
 TEMPLATE = app
 
-QMAKE_CXXFLAGS += -std=c++11 -Wall
+QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra
 
 
 SOURCES += main.cpp\
@@ -129,4 +129,7 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldv8/ -l9foldv8
 INCLUDEPATH += $$PWD/../9foldv8
 DEPENDPATH += $$PWD/../9foldv8
 
+LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/obj.target/tools/gyp -lv8_libplatform
 LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -lv8
+LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -licuuc
+LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -licuuc

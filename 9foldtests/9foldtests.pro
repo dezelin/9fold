@@ -12,7 +12,7 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-QMAKE_CXXFLAGS += -std=c++11 -Wall
+QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra
 
 SOURCES += \
     main.cpp \
@@ -86,3 +86,5 @@ DEPENDPATH += $$PWD/../9foldv8
 
 LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/obj.target/tools/gyp -lv8_libplatform
 LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -lv8
+LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -licuuc
+LIBS += -L/home/dezelin/Workspace/v8/out/x64.debug/lib.target/ -licuuc

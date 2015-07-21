@@ -66,59 +66,69 @@ public:
     class Breakpoint : public QJsonObject
     {
     public:
+        Breakpoint() : QJsonObject() {}
+        Breakpoint(const QJsonObject& object) : QJsonObject(object) {}
         virtual ~Breakpoint() {}
     };
 
     class Frame : public QJsonObject
     {
     public:
+        Frame() : QJsonObject() {}
+        Frame(const QJsonObject& object) : QJsonObject(object) {}
         virtual ~Frame() {}
     };
 
     class Scope : public QJsonObject
     {
     public:
+        Scope() : QJsonObject() {}
+        Scope(const QJsonObject& object) : QJsonObject(object) {}
         virtual ~Scope() {}
     };
 
     class Exception : public QJsonObject
     {
     public:
+        Exception() : QJsonObject() {}
+        Exception(const QJsonObject& object) : QJsonObject(object) {}
         virtual ~Exception() {}
     };
 
     class Script : public QJsonObject
     {
     public:
+        Script() : QJsonObject() {}
+        Script(const QJsonObject& object) : QJsonObject(object) {}
         virtual ~Script() {}
     };
 
     class Source : public QJsonObject
     {
     public:
+        Source() : QJsonObject() {}
+        Source(const QJsonObject& object) : QJsonObject(object) {}
         virtual ~Source() {}
     };
 
     class CommandRequest : public QJsonObject
     {
     public:
+        CommandRequest() : QJsonObject() {}
+        CommandRequest(const QJsonObject& object) : QJsonObject(object) {}
         virtual ~CommandRequest() {}
     };
 
     class CommandResponse : public QJsonObject
     {
     public:
+        CommandResponse() : QJsonObject() {}
+        CommandResponse(const QJsonObject& object) : QJsonObject(object) {}
         virtual ~CommandResponse() {}
     };
 
-    enum class ContinueType : int {
-        In = 0,
-        Next,
-        Out
-    };
-
     virtual int breakZ() = 0;
-    virtual int continueZ(ContinueType type) = 0;
+    virtual int continueZ(const CommandRequest& request) = 0;
     virtual int evaluate(const CommandRequest& request) = 0;
     virtual int lookup(const CommandRequest& request) = 0;
     virtual int getBacktrace(const CommandRequest& request) = 0;
@@ -132,7 +142,8 @@ public:
     virtual int clearBreakpoint(const CommandRequest& request) = 0;
     virtual int setExceptionBreak(const CommandRequest& request) = 0;
     virtual int getFlags(const CommandRequest& request) = 0;
-    virtual int getVersion(CommandResponse& response) = 0;
+    virtual int getVersion(const CommandRequest& request) = 0;
+    virtual int disconnect(const CommandRequest& request) = 0;
     virtual int gc(const CommandRequest& request) = 0;
     virtual int getListOfBreakpoints(const CommandRequest& request) = 0;
     virtual int setVariableValue(const CommandRequest& request) = 0;

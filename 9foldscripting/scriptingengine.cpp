@@ -27,7 +27,8 @@ namespace engine
 
 ScriptingEngine::ScriptingEngine(QObject *parent) : QObject(parent)
 {
-
+    qRegisterMetaType<ScriptingEngine::CommandRequest>("ScriptingEngine::CommandRequest");
+    qRegisterMetaType<ScriptingEngine::CommandResponse>("ScriptingEngine::CommandResponse");
 }
 
 ScriptingEngine::~ScriptingEngine()
