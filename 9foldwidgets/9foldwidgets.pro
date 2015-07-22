@@ -13,7 +13,7 @@ TEMPLATE = lib
 
 CONFIG += qscintilla2
 
-QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra
+QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra -Wno-unused-parameter
 
 DEFINES += _9FOLDWIDGETS_LIBRARY
 
