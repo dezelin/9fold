@@ -22,9 +22,9 @@
 #include "_9folddocumentview.h"
 
 #include <javascripttexteditor.h>
+#include <v8scriptingengine.h>
 
 #include <QObject>
-#include <QScopedPointer>
 #include <QWidget>
 
 namespace _9fold
@@ -34,6 +34,7 @@ namespace views
 
 using namespace _9fold::widgets::editors;
 
+class _9FoldJavaScriptDocumentViewPrivate;
 class _9FoldJavaScriptDocumentView : public _9FoldDocumentView
 {
     Q_OBJECT
@@ -42,6 +43,7 @@ public:
     virtual ~_9FoldJavaScriptDocumentView();
 
     JavaScriptTextEditor* editor() const;
+    V8ScriptingEngine* engine() const;
 
     int debug();
     int run();
@@ -49,10 +51,40 @@ public:
 signals:
 
 public slots:
+    void onBreakOccurred();
+    void onExceptionOccurred();
+    void onNewFunctionOccurred();
+    void onBeforeCompileOccurred();
+    void onAfterCompileOccurred();
+    void onCompileErrorOccurred();
+    void onPromiseEventOccurred();
+    void onAsyncTaskEventOccurred();
+
+    void onContinueResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onEvaluateResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onLookupResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onBackTraceResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onFrameResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onScopeResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onScopesResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onScriptsResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onSourceResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onSetBreakpointResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onChangeBreakpointResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onClearBreakpointResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onSetExceptionBreakResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onV8flagsResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onVersionResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onGcResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onListBreakpointsResponse(const V8ScriptingEngine::CommandResponse& response);
+    void onSetVariableValueResponse(const V8ScriptingEngine::CommandResponse& response);
+
+    void onError(const V8ScriptingEngine::V8Error &error);
+    void onFinished(const QString& result);
 
 private:
-    class _9FoldJavaScriptDocumentViewPrivate;
-    QScopedPointer<_9FoldJavaScriptDocumentViewPrivate> _p;
+    _9FoldJavaScriptDocumentViewPrivate* const d_ptr;
+    Q_DECLARE_PRIVATE(_9FoldJavaScriptDocumentView)
 };
 
 } // namespace views

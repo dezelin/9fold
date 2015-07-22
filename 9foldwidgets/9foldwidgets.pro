@@ -84,3 +84,5 @@ else:unix: LIBS += -L$$OUT_PWD/../9foldv8/ -l9foldv8
 
 INCLUDEPATH += $$PWD/../9foldv8
 DEPENDPATH += $$PWD/../9foldv8
+
+LIBS+= -lqt5scintilla2

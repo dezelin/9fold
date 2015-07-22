@@ -41,54 +41,18 @@ class JavaScriptTextEditor : public TextEditor
     Q_OBJECT
 public:
     typedef V8ScriptingEngine::V8Error V8Error;
-    typedef V8ScriptingEngine::CommandRequest CommandRequest;
-    typedef V8ScriptingEngine::CommandResponse CommandResponse;
 
-    JavaScriptTextEditor(V8ScriptingEngine *engine, QWidget *parent = 0);
+    JavaScriptTextEditor(QWidget *parent = 0);
     virtual ~JavaScriptTextEditor();
-
-    V8ScriptingEngine* engine() const;
-
-    int debug();
-    int run();
 
     int addBreakpoint(int line);
     int clearBreakpoint(int line);
 
+    void displayError(const V8ScriptingEngine::V8Error &error);
+
 signals:
 
 private slots:
-
-    void onBreakOccurred();
-    void onExceptionOccurred();
-    void onNewFunctionOccurred();
-    void onBeforeCompileOccurred();
-    void onAfterCompileOccurred();
-    void onCompileErrorOccurred();
-    void onPromiseEventOccurred();
-    void onAsyncTaskEventOccurred();
-
-    void onContinueResponse(const CommandResponse& response);
-    void onEvaluateResponse(const CommandResponse& response);
-    void onLookupResponse(const CommandResponse& response);
-    void onBackTraceResponse(const CommandResponse& response);
-    void onFrameResponse(const CommandResponse& response);
-    void onScopeResponse(const CommandResponse& response);
-    void onScopesResponse(const CommandResponse& response);
-    void onScriptsResponse(const CommandResponse& response);
-    void onSourceResponse(const CommandResponse& response);
-    void onSetBreakpointResponse(const CommandResponse& response);
-    void onChangeBreakpointResponse(const CommandResponse& response);
-    void onClearBreakpointResponse(const CommandResponse& response);
-    void onSetExceptionBreakResponse(const CommandResponse& response);
-    void onV8flagsResponse(const CommandResponse& response);
-    void onVersionResponse(const CommandResponse& response);
-    void onGcResponse(const CommandResponse& response);
-    void onListBreakpointsResponse(const CommandResponse& response);
-    void onSetVariableValueResponse(const CommandResponse& response);
-
-    void onError(const V8ScriptingEngine::V8Error& error);
-    void onFinished(const QString& result);
     void onLinesChanged();
     void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
 

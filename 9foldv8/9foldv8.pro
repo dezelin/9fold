@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = 9foldv8
 TEMPLATE = lib
 
-QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra
+QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra -Wno-unused-parameter
 
 DEFINES += _9FOLDV8_LIBRARY
 
