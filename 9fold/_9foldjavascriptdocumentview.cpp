@@ -17,6 +17,8 @@
 //
 
 #include "_9foldjavascriptdocumentview.h"
+#include "_9foldjavascriptdocumentpresenter.h"
+#include "_9foldjavascriptdocument.h"
 
 #include <javascripttexteditor.h>
 #include <v8scriptingengine.h>
@@ -36,7 +38,7 @@ class _9FoldJavaScriptDocumentViewPrivate
 public:
     _9FoldJavaScriptDocumentViewPrivate(V8ScriptingEngine *engine,
         JavaScriptTextEditor *editor, _9FoldJavaScriptDocumentView *parent)
-        : q_ptr(parent), _editor(editor), _engine(engine)
+        : q_ptr(parent), _debugStarted(false), _editor(editor), _engine(engine)
     {
 
     }
@@ -56,9 +58,83 @@ public:
         return _engine.data();
     }
 
+    void addBreakpoint(int line)
+    {
+        if (!_breakpoints.contains(line))
+            _breakpoints.push_back(line);
+    }
+
+    void clearBreakpoint(int line)
+    {
+        if (_breakpoints.contains(line))
+            _breakpoints.removeAll(line);
+    }
+
+    const QVector<int>& breakpoints() const
+    {
+        return _breakpoints;
+    }
+
+    const QString& scriptName() const
+    {
+        Q_Q(const _9FoldJavaScriptDocumentView);
+        _9FoldJavaScriptDocumentPresenter *presenter =
+                qobject_cast<_9FoldJavaScriptDocumentPresenter *>(q->presenter());
+        Q_ASSERT(presenter);
+
+        _9FoldJavaScriptDocument *document =
+                qobject_cast<_9FoldJavaScriptDocument *>(presenter->document());
+        Q_ASSERT(document);
+
+        return document->name();
+    }
+
+    void startDebug()
+    {
+        _debugStarted = true;
+    }
+
+    void isolateContinue()
+    {
+        V8ScriptingEngine::CommandRequest args;
+        //args["stepaction"] = "out";
+
+        V8ScriptingEngine::CommandRequest request;
+        request["arguments"] = args;
+        _engine->continueZ(request);
+    }
+
+    void endDebug()
+    {
+        _debugStarted = false;
+    }
+
+    bool debugStarted() const
+    {
+        return _debugStarted;
+    }
+
+    void isolateInsertBreakpoints()
+    {
+        Q_ASSERT(_engine);
+        for(int line : _breakpoints) {
+            V8ScriptingEngine::CommandRequest args;
+            args["type"] = "script";
+            args["target"] = scriptName();
+            args["line"] = line + 1;
+
+            V8ScriptingEngine::CommandRequest request;
+            request["arguments"] = args;
+            _engine->setBreakpoint(request);
+        }
+    }
+
 private:
     _9FoldJavaScriptDocumentView* const q_ptr;
     Q_DECLARE_PUBLIC(_9FoldJavaScriptDocumentView)
+
+    bool _debugStarted;
+    QVector<int> _breakpoints;
 
     JavaScriptTextEditor *_editor;
     QScopedPointer<V8ScriptingEngine> _engine;
@@ -73,6 +149,8 @@ _9FoldJavaScriptDocumentView::_9FoldJavaScriptDocumentView(QWidget *parent)
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(d->editor());
     layout->setContentsMargins(0, 0, 0, 0);
+
+    // ScriptingEngine signals
 
     connect(d->engine(), SIGNAL(breakOccurred()), this, SLOT(onBreakOccurred()));
     connect(d->engine(), SIGNAL(exceptionOccurred()), this, SLOT(onExceptionOccurred()));
@@ -123,6 +201,11 @@ _9FoldJavaScriptDocumentView::_9FoldJavaScriptDocumentView(QWidget *parent)
     connect(d->engine(), SIGNAL(errorOccurred(V8ScriptingEngine::V8Error)),
             this, SLOT(onError(V8ScriptingEngine::V8Error)));
     connect(d->engine(), SIGNAL(finished(QString)), this, SLOT(onFinished(QString)));
+
+    // TextEditor signals
+    connect(d->editor(), SIGNAL(addBreakpoint(int)), this, SLOT(onAddBreakpoint(int)));
+    connect(d->editor(), SIGNAL(clearBreakpoint(int)), this, SLOT(onClearBreakpoint(int)));
+
 }
 
 _9FoldJavaScriptDocumentView::~_9FoldJavaScriptDocumentView()
@@ -146,20 +229,33 @@ V8ScriptingEngine *_9FoldJavaScriptDocumentView::engine() const
 int _9FoldJavaScriptDocumentView::debug()
 {
     Q_D(_9FoldJavaScriptDocumentView);
-    d->engine()->debugAsync(d->editor()->text());
+    d->engine()->debugAsync(d->scriptName(), d->editor()->text());
     return 0;
 }
 
 int _9FoldJavaScriptDocumentView::run()
 {
     Q_D(_9FoldJavaScriptDocumentView);
-    d->engine()->runAsync(d->editor()->text());
+    d->engine()->runAsync(d->scriptName(), d->editor()->text());
     return 0;
 }
 
 void _9FoldJavaScriptDocumentView::onBreakOccurred()
 {
-
+    Q_D(_9FoldJavaScriptDocumentView);
+    /*
+    if (!d->debugStarted()) {
+        // Scripting engine is now inside the first break.
+        // No code has been executed so far.
+        // Prepare the isolate for debugging.
+        d->isolateInsertBreakpoints();
+        d->startDebug();
+        d->isolateContinue();
+    }
+    else {
+        d->isolateContinue();
+    }
+    */
 }
 
 void _9FoldJavaScriptDocumentView::onExceptionOccurred()
@@ -296,6 +392,18 @@ void _9FoldJavaScriptDocumentView::onError(const V8ScriptingEngine::V8Error &err
 void _9FoldJavaScriptDocumentView::onFinished(const QString &result)
 {
 
+}
+
+void _9FoldJavaScriptDocumentView::onAddBreakpoint(int line)
+{
+    Q_D(_9FoldJavaScriptDocumentView);
+    d->addBreakpoint(line);
+}
+
+void _9FoldJavaScriptDocumentView::onClearBreakpoint(int line)
+{
+    Q_D(_9FoldJavaScriptDocumentView);
+    d->clearBreakpoint(line);
 }
 
 } // namespace views

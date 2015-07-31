@@ -85,7 +85,7 @@ ScriptingEngine* ScriptingConsole::engine()
 
 void ScriptingConsole::execute(const QString& text)
 {
-    QString result = engine()->run(text);
+    QString result = engine()->run(QString(), text);
     editor()->addText(result);
 }
 

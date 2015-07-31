@@ -47,30 +47,9 @@ public:
 
     }
 
-    void addBreakpoint(int line)
-    {
-        if (_breakpoints.contains(line))
-            return;
-
-        _breakpoints.push_back(line);
-    }
-
-    void clearBreakpoint(int line)
-    {
-        _breakpoints.removeAll(line);
-    }
-
-    const QVector<int>& breakpoints() const
-    {
-        return _breakpoints;
-    }
-
 private:
     JavaScriptTextEditor* const q_ptr;
     Q_DECLARE_PUBLIC(JavaScriptTextEditor)
-
-private:
-    QVector<int> _breakpoints;
 };
 
 JavaScriptTextEditor::JavaScriptTextEditor(QWidget *parent)
@@ -108,20 +87,6 @@ JavaScriptTextEditor::~JavaScriptTextEditor()
     delete d;
 }
 
-int JavaScriptTextEditor::addBreakpoint(int line)
-{
-    Q_D(JavaScriptTextEditor);
-    d->addBreakpoint(line);
-    return 0;
-}
-
-int JavaScriptTextEditor::clearBreakpoint(int line)
-{
-    Q_D(JavaScriptTextEditor);
-    d->clearBreakpoint(line);
-    return 0;
-}
-
 void JavaScriptTextEditor::displayError(const V8ScriptingEngine::V8Error &error)
 {
     markerDeleteAll(kErrorMarker);
@@ -148,11 +113,11 @@ void JavaScriptTextEditor::onMarginClicked(int /*margin*/, int line, Qt::Keyboar
 
     if (mask & (1 << kBreakpointMarker)) {
         markerDelete(line, kBreakpointMarker);
-        clearBreakpoint(line);
+        emit clearBreakpoint(line);
     }
     else {
         markerAdd(line, kBreakpointMarker);
-        addBreakpoint(line);
+        emit addBreakpoint(line);
     }
 }
 

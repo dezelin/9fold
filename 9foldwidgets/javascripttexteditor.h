@@ -45,19 +45,15 @@ public:
     JavaScriptTextEditor(QWidget *parent = 0);
     virtual ~JavaScriptTextEditor();
 
-    int addBreakpoint(int line);
-    int clearBreakpoint(int line);
-
     void displayError(const V8ScriptingEngine::V8Error &error);
 
 signals:
+    void addBreakpoint(int line);
+    void clearBreakpoint(int line);
 
 private slots:
     void onLinesChanged();
     void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
-
-private:
-    void debugInsertBreakpoints();
 
 private:
     JavaScriptTextEditorPrivate* const d_ptr;

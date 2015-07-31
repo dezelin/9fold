@@ -57,7 +57,7 @@ public:
         V8::InitializePlatform(_platform);
         V8::Initialize();
 
-        QString flags("--harmony --harmony-proxies --debugger --expose_debug_as=v8debug");
+        QString flags("--harmony --debugger");
         V8::SetFlagsFromString(flags.toUtf8().data(), flags.length());
     }
 
@@ -126,36 +126,19 @@ public:
     typedef V8ScriptingEngine::CommandRequest CommandRequest;
     typedef V8ScriptingEngine::CommandResponse CommandResponse;
 
-    V8ScriptingEngineWorkerPrivate(const QString &scriptAsync,
-        V8ScriptingEngineWorker *parent)
+    V8ScriptingEngineWorkerPrivate(const QString &scriptNameAsync,
+        const QString &scriptAsync, V8ScriptingEngineWorker *parent)
         : q_ptr(parent)
         , _seq(0)
         , _debug(false)
         , _scriptAsync(scriptAsync)
+        , _scriptNameAsync(scriptNameAsync)
     {
         Singleton<PlatformInitializer>::instance();
-
-        Isolate::CreateParams createParams;
-        createParams.array_buffer_allocator = &_allocator;
-        _isolate = Isolate::New(createParams);
-
-        Locker lock(_isolate);
-        Isolate::Scope scope(_isolate);
-
-        // Set debug event callback handler
-        Debug::SetDebugEventListener(EventCallback);
-
-        // Set debug message callback handler
-        Debug::SetMessageHandler(MessageCallback);
-
     }
 
     ~V8ScriptingEngineWorkerPrivate()
     {
-        Locker lock(_isolate);
-        _context.Reset();
-        // FIXME: This has to be replaced by a call to Dispose(). Memory leak??
-        _isolate->TerminateExecution();
     }
 
     void EncapsulateGlobal(Local<ObjectTemplate>& /*global*/)
@@ -182,6 +165,16 @@ public:
     const QString& scriptAsync() const
     {
         return _scriptAsync;
+    }
+
+    const QString& scriptNameAsync() const
+    {
+        return _scriptNameAsync;
+    }
+
+    void exposeGlobalQObject(const QString &name, QObject *object)
+    {
+
     }
 
     void eventCallback(const Debug::EventDetails& event_details)
@@ -230,10 +223,25 @@ public:
     void messageCallback(const Debug::Message& message)
     {
         Q_Q(V8ScriptingEngineWorker);
+
+        Local<String> jsonMessage = message.GetJSON();
+        Q_ASSERT(!jsonMessage.IsEmpty());
+        if (jsonMessage.IsEmpty()) {
+            qWarning() << "Got empty JSON message from V8";
+            return;
+        }
+
+        QString jsonString(*String::Utf8Value(jsonMessage));
+        qDebug() << "V8 message: " << jsonString;
+
         if (message.IsEvent()) {
             switch (message.GetEvent()) {
             case Break: {
-                emit q->breakOccurred();
+                //emit q->breakOccurred();
+                V8ScriptingEngine::CommandRequest args;
+                V8ScriptingEngine::CommandRequest req;
+                req["arguments"] = args;
+                continueZ(req);
                 break;
             }
             case Exception: {
@@ -271,16 +279,6 @@ public:
             }
         }
         else if (message.IsResponse()) {
-            Local<String> jsonMessage = message.GetJSON();
-            Q_ASSERT(!jsonMessage.IsEmpty());
-            if (jsonMessage.IsEmpty()) {
-                qWarning() << "Got empty JSON response from V8";
-                return;
-            }
-
-            QString jsonString(*String::Utf8Value(jsonMessage));
-            qDebug() << "V8 response: " << jsonString;
-
             QJsonParseError error;
             QJsonDocument json = QJsonDocument::fromJson(jsonString.toUtf8(), &error);
             if (error.error != QJsonParseError::NoError) {
@@ -323,6 +321,8 @@ public:
                 emit q->versionResponse(jsonResponse);
             else if (jsonResponse["command"] == "gc")
                 emit q->gcResponse(jsonResponse);
+            else if (jsonResponse["command"] == "disconnect")
+                emit q->disconnectResponse(jsonResponse);
             else if (jsonResponse["command"] == "listbreakpoints")
                 emit q->listBreakpointsResponse(jsonResponse);
             else if (jsonResponse["command"] == "setvariablevalue")
@@ -334,66 +334,82 @@ public:
             Q_ASSERT(!"Unsupported message.");
     }
 
-    QString run(const QString& script)
+    QString run(const QString& scriptName, const QString& script)
     {
         Q_Q(V8ScriptingEngineWorker);
 
-        Locker lock(_isolate);
-        Isolate::Scope scope(_isolate);
-
-        // Create a stack-allocated handle scope.
-        HandleScope handleScope(_isolate);
-
-        // Create global object
-        Local<ObjectTemplate> global = ObjectTemplate::New();
-        EncapsulateGlobal(global);
-
-        // Create a new context.
-        if (_context.IsEmpty()) {
-            Local<Context> localContext = Context::New(_isolate, 0, global);
-            localContext->SetAlignedPointerInEmbedderData(1, this);
-            _context.Reset(_isolate, localContext);
-        }
-
-        // Enter the context for compiling and running the script.
-        Context::Scope contextScope(_context.Get(_isolate));
-
-        // Create a string containing the JavaScript source code.
-        Local<String> source = String::NewFromUtf8(_isolate, script.toUtf8().data());
-
-        // Catch compilation and evaluation errors
-        TryCatch trycatch;
-        _error = tryCatchToError(trycatch);
-
-        // Compile the source code.
         QString result;
-        Local<v8::Script> _script = v8::Script::Compile(source);
-        if (_script.IsEmpty()) {
+
+        Isolate::CreateParams createParams;
+        createParams.array_buffer_allocator = &_allocator;
+        _isolate = Isolate::New(createParams);
+
+        {
+            Locker lock(_isolate);
+            Isolate::Scope scope(_isolate);
+
+            // Create a stack-allocated handle scope.
+            HandleScope handleScope(_isolate);
+
+            // Set debug event callback handler
+            Debug::SetDebugEventListener(EventCallback);
+
+            // Set debug message callback handler
+            Debug::SetMessageHandler(MessageCallback);
+
+            // Create global object
+            Local<ObjectTemplate> global = ObjectTemplate::New();
+            EncapsulateGlobal(global);
+
+            // Create a new context.
+            if (_context.IsEmpty()) {
+                Local<Context> localContext = Context::New(_isolate, 0, global);
+                localContext->SetAlignedPointerInEmbedderData(1, this);
+                _context.Reset(_isolate, localContext);
+            }
+
+            // Enter the context for compiling and running the script.
+            Context::Scope contextScope(_context.Get(_isolate));
+
+            // Create a string containing the JavaScript source code.
+            Local<String> source = String::NewFromUtf8(_isolate, script.toUtf8().data());
+
+            // Catch compilation and evaluation errors
+            TryCatch trycatch;
             _error = tryCatchToError(trycatch);
-            String::Utf8Value exception(trycatch.Exception());
-            result = QString(*exception);
-            emit q->errorOccurred(_error);
+
+            // Compile the source code.
+            Local<String> sourceName = String::NewFromUtf8(_isolate, scriptName.toUtf8().data());
+            Local<v8::Script> _script = v8::Script::Compile(source, sourceName);
+            if (_script.IsEmpty()) {
+                _error = tryCatchToError(trycatch);
+                String::Utf8Value exception(trycatch.Exception());
+                result = QString(*exception);
+                emit q->errorOccurred(_error);
+                emit q->finished(result);
+                goto _quit;
+            }
+
+            if (_debug)
+                Debug::DebugBreak(_isolate);
+
+            // Run the script to get the result.
+            MaybeLocal<Value> _value = _script->Run(Debug::GetDebugContext());
+            if (_value.IsEmpty()) {
+                _error = tryCatchToError(trycatch);
+                String::Utf8Value exception(trycatch.Exception());
+                result = QString(*exception);
+                emit q->errorOccurred(_error);
+                emit q->finished(result);
+                goto _quit;
+            }
+
+            result = QString::fromLatin1(*String::Utf8Value(_value.FromMaybe(Local<Value>())));
             emit q->finished(result);
-            return result;
         }
 
-        if (_debug)
-            Debug::DebugBreak(_isolate);
-
-        // Run the script to get the result.
-        Local<Value> _value = _script->Run();
-        if (_value.IsEmpty()) {
-            _error = tryCatchToError(trycatch);
-            String::Utf8Value exception(trycatch.Exception());
-            result = QString(*exception);
-            emit q->errorOccurred(_error);
-            emit q->finished(result);
-            return result;
-        }
-
-        result = QString::fromLatin1(*String::Utf8Value(_value));
-        emit q->finished(result);
-
+    _quit:
+        _isolate->Dispose();
         return result;
     }
 
@@ -409,7 +425,9 @@ public:
     {
         QJsonObject cmdJson;
         cmdJson["command"] = "continue";
-        cmdJson["arguments"] = request["arguments"];
+        if (request["arguments"] != QJsonValue::Undefined)
+            cmdJson["arguments"] = request["arguments"];
+
         return sendDebuggerCommand(cmdJson);
     }
 
@@ -586,6 +604,7 @@ private:
 
         Debug::SendCommand(_isolate, cmd.utf16(), cmd.length(), clientData.take());
         Debug::ProcessDebugMessages();
+
         return 0;
     }
 
@@ -602,20 +621,21 @@ private:
     int _seq;
     bool _debug;
     QString _scriptAsync;
+    QString _scriptNameAsync;
     Isolate *_isolate;
     Persistent<Context> _context;
     V8ScriptingEngine::V8Error _error;
     ArrayBufferAllocator _allocator;
 };
 
-V8ScriptingEngineWorker::V8ScriptingEngineWorker(const QString &script)
-    : QObject(), d_ptr(new V8ScriptingEngineWorkerPrivate(script, this))
+V8ScriptingEngineWorker::V8ScriptingEngineWorker(const QString &scriptName, const QString &script)
+    : QObject(), d_ptr(new V8ScriptingEngineWorkerPrivate(scriptName, script, this))
 {
 
 }
 
 V8ScriptingEngineWorker::V8ScriptingEngineWorker(QObject *parent)
-    : QObject(parent), d_ptr(new V8ScriptingEngineWorkerPrivate(QString(), this))
+    : QObject(parent), d_ptr(new V8ScriptingEngineWorkerPrivate(QString(), QString(), this))
 {
 
 }
@@ -758,10 +778,10 @@ const V8ScriptingEngineWorker::V8Error &V8ScriptingEngineWorker::error() const
     return d->error();
 }
 
-QString V8ScriptingEngineWorker::run(const QString &script)
+QString V8ScriptingEngineWorker::run(const QString& scriptName, const QString &script)
 {
     Q_D(V8ScriptingEngineWorker);
-    return d->run(script);
+    return d->run(scriptName, script);
 }
 
 QString V8ScriptingEngineWorker::version() const
@@ -770,16 +790,22 @@ QString V8ScriptingEngineWorker::version() const
     return d->version();
 }
 
+void V8ScriptingEngineWorker::exposeGlobalQObject(const QString &name, QObject *object)
+{
+    Q_D(V8ScriptingEngineWorker);
+    d->exposeGlobalQObject(name, object);
+}
+
 void V8ScriptingEngineWorker::execute()
 {
     Q_D(V8ScriptingEngineWorker);
-    d->run(d->scriptAsync());
+    d->run(d->scriptNameAsync(), d->scriptAsync());
 }
 
 void V8ScriptingEngineWorker::executeDebug()
 {
     Q_D(V8ScriptingEngineWorker);
-    d->run(d->scriptAsync());
+    d->run(d->scriptNameAsync(), d->scriptAsync());
 }
 
 //

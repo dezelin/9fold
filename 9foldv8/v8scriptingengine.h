@@ -61,10 +61,12 @@ public:
 
     virtual QString version() const;
 
-    virtual QString run(const QString& script);
+    virtual QString run(const QString& scriptName, const QString& script);
 
-    virtual void debugAsync(const QString &script);
-    virtual void runAsync(const QString& script);
+    virtual void debugAsync(const QString& scriptName, const QString &script);
+    virtual void runAsync(const QString& scriptName, const QString& script);
+
+    virtual void exposeGlobalQObject(const QString& name, QObject* object);
 
     //
     // Debugger interface

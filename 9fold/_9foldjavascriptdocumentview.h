@@ -51,6 +51,9 @@ public:
 signals:
 
 public slots:
+
+    // ScriptingEngine slots
+
     void onBreakOccurred();
     void onExceptionOccurred();
     void onNewFunctionOccurred();
@@ -81,6 +84,11 @@ public slots:
 
     void onError(const V8ScriptingEngine::V8Error &error);
     void onFinished(const QString& result);
+
+    // TextEditor slots
+
+    void onAddBreakpoint(int line);
+    void onClearBreakpoint(int line);
 
 private:
     _9FoldJavaScriptDocumentViewPrivate* const d_ptr;

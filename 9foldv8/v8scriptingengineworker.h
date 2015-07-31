@@ -39,7 +39,7 @@ class V8ScriptingEngineWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit V8ScriptingEngineWorker(const QString& script);
+    explicit V8ScriptingEngineWorker(const QString& scriptName, const QString& script);
     explicit V8ScriptingEngineWorker(QObject *parent = 0);
     virtual ~V8ScriptingEngineWorker();
 
@@ -75,8 +75,10 @@ public:
     int initializeDebugging();
 
     const V8Error& error() const;
-    QString run(const QString& script);
+    QString run(const QString& scriptName, const QString& script);
     QString version() const;
+
+    void exposeGlobalQObject(const QString& name, QObject* object);
 
 signals:
     void breakOccurred();
@@ -104,6 +106,7 @@ signals:
     void v8flagsResponse(const V8ScriptingEngine::CommandResponse& response);
     void versionResponse(const V8ScriptingEngine::CommandResponse& response);
     void gcResponse(const V8ScriptingEngine::CommandResponse& response);
+    void disconnectResponse(const V8ScriptingEngine::CommandResponse& response);
     void listBreakpointsResponse(const V8ScriptingEngine::CommandResponse& response);
     void setVariableValueResponse(const V8ScriptingEngine::CommandResponse& response);
 

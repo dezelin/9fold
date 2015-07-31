@@ -47,6 +47,8 @@ public:
         : q_ptr(parent), _worker(new V8ScriptingEngineWorker(parent))
     {
         qRegisterMetaType<V8ScriptingEngine::V8Error>("V8ScriptingEngine::V8Error");
+        qRegisterMetaType<V8ScriptingEngine::CommandRequest>("V8ScriptingEngine::CommandRequest");
+        qRegisterMetaType<V8ScriptingEngine::CommandResponse>("V8ScriptingEngine::CommandResponse");
     }
 
     ~V8ScriptingEnginePrivate()
@@ -190,23 +192,23 @@ public:
         return _worker->error();
     }
 
-    QString run(const QString& script)
+    QString run(const QString& scriptName, const QString& script)
     {
         Q_ASSERT(_worker);
-        return _worker->run(script);
+        return _worker->run(scriptName, script);
     }
 
-    void debugAsync(const QString &script)
+    void debugAsync(const QString& scriptName, const QString &script)
     {
-        runAsync(script, true);
+        runAsync(scriptName, script, true);
     }
 
-    void runAsync(const QString &script, bool debug = false)
+    void runAsync(const QString& scriptName, const QString &script, bool debug = false)
     {
         Q_Q(V8ScriptingEngine);
         Q_ASSERT(_worker);
         QScopedPointer<QThread> thread(new QThread());
-        QScopedPointer<V8ScriptingEngineWorker> worker(new V8ScriptingEngineWorker(script));
+        QScopedPointer<V8ScriptingEngineWorker> worker(new V8ScriptingEngineWorker(scriptName, script));
         if (debug) {
             worker->initializeDebugging();
         }
@@ -274,6 +276,12 @@ public:
 
         thread.take();
         worker.take();
+    }
+
+    void exposeGlobalQObject(const QString& name, QObject* object)
+    {
+        Q_ASSERT(_worker);
+        _worker->exposeGlobalQObject(name, object);
     }
 
     QString version() const
@@ -368,22 +376,28 @@ QString V8ScriptingEngine::version() const
     return d->version();
 }
 
-QString V8ScriptingEngine::run(const QString& script)
+QString V8ScriptingEngine::run(const QString &scriptName, const QString& script)
 {
     Q_D(V8ScriptingEngine);
-    return d->run(script);
+    return d->run(scriptName, script);
 }
 
-void V8ScriptingEngine::debugAsync(const QString &script)
+void V8ScriptingEngine::debugAsync(const QString &scriptName, const QString &script)
 {
     Q_D(V8ScriptingEngine);
-    d->debugAsync(script);
+    d->debugAsync(scriptName, script);
 }
 
-void V8ScriptingEngine::runAsync(const QString &script)
+void V8ScriptingEngine::runAsync(const QString &scriptName, const QString &script)
 {
     Q_D(V8ScriptingEngine);
-    d->runAsync(script);
+    d->runAsync(scriptName, script);
+}
+
+void V8ScriptingEngine::exposeGlobalQObject(const QString& name, QObject* object)
+{
+    Q_D(V8ScriptingEngine);
+    d->exposeGlobalQObject(name, object);
 }
 
 //
